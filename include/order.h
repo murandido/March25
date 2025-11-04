@@ -3,4 +3,6 @@
 
 struct Order;
 
+struct ItemOrder;
+
 #endif //MARCH25_ORDER_H
