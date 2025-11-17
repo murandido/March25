@@ -7,6 +7,8 @@
 typedef struct {
     int ProductID;
     char Name[100];
+    char description[100];
+    int stock;
     int Price;
 } ProductID;
 #endif //MARCH25_PRODUCT_H
