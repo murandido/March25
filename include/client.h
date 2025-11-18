@@ -3,6 +3,4 @@
 
 struct Client;
 
-
-
 #endif //MARCH25_CLIENT_H
