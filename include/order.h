@@ -1,8 +1,18 @@
 #ifndef MARCH25_ORDER_H
 #define MARCH25_ORDER_H
 
-struct Order;
+typedef struct {
+    int id;
+    int clientId;
+    char data[11];
+    int total;
+} Order;
 
-struct ItemOrder;
+typedef struct {
+    int orderId;
+    int productId;
+    int quantity;
+    int subtotal;
+} ItemOrder;
 
 #endif //MARCH25_ORDER_H

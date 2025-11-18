@@ -1,10 +1,11 @@
 #include "../include/client.h"
 
-typedef  struct {
+typedef struct {
     int id;
-    char cpf[12];
+    int type;
     char name[100];
-    char  fullAddress[100];
+    char address[200];
     char phoneNumber[20];
+    char cpf[11];
     char email[100];
-} Individual;
+} Client;
