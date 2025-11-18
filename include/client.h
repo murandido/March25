@@ -5,10 +5,6 @@
 #ifndef MARCH25_CLIENT_H
 #define MARCH25_CLIENT_H
 
-typedef struct {
-    int PessoaJuridicaId;
-    char CNPJ[15];
-    char RazaoSocial[100];
-} PessoaJuridicaId;
+struct Client;
 
 #endif //MARCH25_CLIENT_H
