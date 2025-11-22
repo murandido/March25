@@ -18,4 +18,10 @@ typedef struct {
     char contactName[100];
 } Client;
 
+int samenumbers(int *cpf_nums);
+int verifier(int DVs);
+int CPF(char *cpf);
+
+
+
 #endif //MARCH25_CLIENT_H
