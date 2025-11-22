@@ -7,8 +7,12 @@
 
 typedef struct {
     int PessoaJuridicaId;
-    char CNPJ[15];
+    int CNPJ[14];
+    int CNPJclone[14];
     char RazaoSocial[100];
 } PessoaJuridicaId;
+
+//prototipo da função de validar CPNJ.
+int validarCNPJ();
 
 #endif //MARCH25_CLIENT_H
