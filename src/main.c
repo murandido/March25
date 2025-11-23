@@ -35,11 +35,11 @@ int main() {
 
     // menu window size
     int menuWinH = mainBlockH - 3;
-    int menuWinW = (int) (mainBlockW * 0.20);
+    int menuWinW = (int) (mainBlockW * 0.30);
 
     // menu supplement window size
     int menuSuppWinH = mainBlockH - 3;
-    int menuSuppWinW = (int) (mainBlockW * 0.20);
+    int menuSuppWinW = (int) (mainBlockW * 0.15);
 
     // info window size
     int infoWinH = mainBlockH - 3;
