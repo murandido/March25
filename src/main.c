@@ -9,7 +9,8 @@ int main() {
     noecho();
     curs_set(0);
 
-    napms(100);
+    // TODO: remove after finish the project
+    napms(200);
     refresh();
 
     if (has_colors() == FALSE) {
@@ -34,11 +35,11 @@ int main() {
 
     // menu window size
     int menuWinH = mainBlockH - 3;
-    int menuWinW = (int) (mainBlockW * 0.25);
+    int menuWinW = (int) (mainBlockW * 0.20);
 
     // menu supplement window size
     int menuSuppWinH = mainBlockH - 3;
-    int menuSuppWinW = (int) (mainBlockW * 0.15);
+    int menuSuppWinW = (int) (mainBlockW * 0.20);
 
     // info window size
     int infoWinH = mainBlockH - 3;
@@ -84,10 +85,9 @@ int main() {
 
     drawBorderWindow(borderWindow, mainBlockW, menuWinW, menuSuppWinW, topRowH);
 
-    keypad(borderWindow, TRUE);
+    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW);
 
-    flushinp();
-    wgetch(borderWindow);
+    keypad(borderWindow, TRUE);
 
     // delete windows
     delwin(borderWindow);
