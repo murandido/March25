@@ -142,6 +142,25 @@ void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW 
                 if (highlight > nOptions - 1) highlight = 0;
                 break;
 
+            case 10:
+                switch (highlight) {
+                    // clients module
+                    case 0:
+                        break;
+                    // products module
+                    case 1:
+                        break;
+                    // orders module
+                    case 2:
+                        break;
+                    // exit
+                    case 4:
+                        return;
+                    default:
+                        break;
+                }
+                break;
+
             default:
                 break;
         }
