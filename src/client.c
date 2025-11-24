@@ -40,14 +40,14 @@ int validateCPF(const char *cpf) {
         DVs1 += cpf2[i] * j;
     }
 
-    DVs1 = verifier(DVs1);
+    DVs1 = checkDigitVerifier(DVs1);
 
     // Calculation of Check Digit 2
     for (i = 0, j = 11; i < 10; i++, j--) {
         DVs2 += cpf2[i] * j;
     }
 
-    DVs2 = verifier(DVs2);
+    DVs2 = checkDigitVerifier(DVs2);
 
     // Final verification;
     if (sameNumbers(cpf2)) {
