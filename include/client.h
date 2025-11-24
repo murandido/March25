@@ -1,18 +1,19 @@
-//
-// Created by murandido on 11/4/25.
-//
-
 #ifndef MARCH25_CLIENT_H
 #define MARCH25_CLIENT_H
 
 typedef struct {
-    int PessoaJuridicaId;
-    int CNPJ[14];
-    int CNPJclone[14];
-    char RazaoSocial[100];
-} PessoaJuridicaId;
+    int id;
+    int type;
+    char name[100];
+    char legalName[100];
+    char address[200];
+    char phoneNumber[20];
+    char cpf[12];
+    char cnpj[15];
+    char email[100];
+    char contactName[100];
+} Client;
 
-//prototipo da função de validar CPNJ.
-int validarCNPJ();
+int validateCNPJ(const char *cnpjInput);
 
 #endif //MARCH25_CLIENT_H
