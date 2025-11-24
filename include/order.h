@@ -15,4 +15,10 @@ typedef struct {
     int subtotal;
 } ItemOrder;
 
+typedef struct {
+    Order *data;
+    int count;
+    int capacity;
+} OrderList;
+
 #endif //MARCH25_ORDER_H
