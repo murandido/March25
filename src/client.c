@@ -42,7 +42,7 @@ int validateCNPJ(const char *cnpjInput) {
     // weights: 5,4,3,2,9,8,7,6,5,4,3,2
     int sum1 = 0;
     int weights1[] = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
-
+    
     for (int i = 0; i < 12; i++) {
         sum1 += numbers[i] * weights1[i];
     }
