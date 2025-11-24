@@ -121,7 +121,7 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
         mvwhline(menuSuppWin, 3, 0, '-', getmaxx(menuSuppWin));
         wattroff(menuSuppWin, A_DIM);
 
-        mvwprintw(footerWin, 0, 0, "Modulo de PEDIDOS. ENTER para confirmar.");
+        mvwprintw(footerWin, 0, 0, "PWD: /PEDIDOS/ │ Modulo de PEDIDOS. ENTER para confirmar.");
 
         // refresh the windows
         wrefresh(borderWindow);
@@ -265,7 +265,7 @@ void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW 
         mvwhline(menuSuppWin, 3, 0, '-', getmaxx(menuSuppWin));
         wattroff(menuSuppWin, A_DIM);
 
-        mvwprintw(footerWin, 0, 0, "Use SETAS para navegar e ENTER para selecionar.");
+        mvwprintw(footerWin, 0, 0, "PWD: / │ Use SETAS para navegar e ENTER para selecionar.");
 
         // refresh the windows
         wrefresh(borderWindow);
