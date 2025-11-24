@@ -37,6 +37,14 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
         "voltar.exe"
     };
 
+    char optionsSupp[5][50] = {
+        "--CMD",
+        "--CMD",
+        "--CMD",
+        "",
+        "--CMD",
+    };
+
     char descriptions[5][100] = {
         "Cadastrar um novo pedido no sistema.",
         "Listar todos os pedidos registrados.",
@@ -76,11 +84,11 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
                 mvwaddch(borderWindow, i + 1, borderColX, ACS_VLINE);
                 wattroff(borderWindow, COLOR_PAIR(1));
 
-                // this prints "--FILE" and fills the empty space with the rest to form the arrow "--->", everything bold and background red
+                // this prints the option supplement and fills the empty space with the rest to form the arrow "--->", everything bold and background red
                 wattron(menuSuppWin, COLOR_PAIR(1));
                 wattron(menuSuppWin, A_BOLD);
-                mvwprintw(menuSuppWin, i, 0, "%s", "--CMD");
-                mvwhline(menuSuppWin, i, 5, '-', getmaxx(menuSuppWin) - 5);
+                mvwprintw(menuSuppWin, i, 0, "%s", optionsSupp[i]);
+                mvwhline(menuSuppWin, i, strlen(optionsSupp[i]), '-', getmaxx(menuSuppWin) - strlen(optionsSupp[i]));
                 mvwprintw(menuSuppWin, i, getmaxx(menuSuppWin) - 1, ">");
                 wattroff(menuSuppWin, A_BOLD);
                 wattroff(menuSuppWin, COLOR_PAIR(1));
@@ -95,10 +103,10 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
                 wattroff(borderWindow, COLOR_PAIR(1));
                 mvwaddch(borderWindow, i + 1, borderColX, ACS_VLINE);
 
-                // this prints "--FILE" and fills the empty space with the rest to form the arrow "--->"
+                // this prints the option supplement and fills the empty space with the rest to form the arrow "--->"
                 wattron(menuSuppWin, A_BOLD);
-                mvwprintw(menuSuppWin, i, 0, "%s", "--CMD");
-                mvwhline(menuSuppWin, i, 5, '-', getmaxx(menuSuppWin) - 5);
+                mvwprintw(menuSuppWin, i, 0, "%s", optionsSupp[i]);
+                mvwhline(menuSuppWin, i, strlen(optionsSupp[i]), '-', getmaxx(menuSuppWin) - strlen(optionsSupp[i]));
                 mvwprintw(menuSuppWin, i, getmaxx(menuSuppWin) - 1, ">");
                 wattroff(menuSuppWin, A_BOLD);
             }
@@ -167,11 +175,19 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
 
 void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
     char options[5][50] = {
-        "clientes.exe",
-        "produtos.exe",
-        "pedidos.exe",
+        "CLIENTES/",
+        "PRODUTOS/",
+        "PEDIDOS/",
         "",
         "sair.exe"
+    };
+
+    char optionsSupp[5][50] = {
+        "--FOLDER",
+        "--FOLDER",
+        "--FOLDER",
+        "",
+        "--CMD",
     };
 
     char descriptions[5][100] = {
@@ -212,11 +228,11 @@ void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW 
                 mvwaddch(borderWindow, i + 1, borderColX, ACS_VLINE);
                 wattroff(borderWindow, COLOR_PAIR(1));
 
-                // this prints "--FILE" and fills the empty space with the rest to form the arrow "--->", everything bold and background red
+                // this prints the option supplement and fills the empty space with the rest to form the arrow "--->", everything bold and background red
                 wattron(menuSuppWin, COLOR_PAIR(1));
                 wattron(menuSuppWin, A_BOLD);
-                mvwprintw(menuSuppWin, i, 0, "%s", "--FILE");
-                mvwhline(menuSuppWin, i, 6, '-', getmaxx(menuSuppWin) - 6);
+                mvwprintw(menuSuppWin, i, 0, "%s", optionsSupp[i]);
+                mvwhline(menuSuppWin, i, strlen(optionsSupp[i]), '-', getmaxx(menuSuppWin) - strlen(optionsSupp[i]));
                 mvwprintw(menuSuppWin, i, getmaxx(menuSuppWin) - 1, ">");
                 wattroff(menuSuppWin, A_BOLD);
                 wattroff(menuSuppWin, COLOR_PAIR(1));
@@ -231,10 +247,10 @@ void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW 
                 wattroff(borderWindow, COLOR_PAIR(1));
                 mvwaddch(borderWindow, i + 1, borderColX, ACS_VLINE);
 
-                // this prints "--FILE" and fills the empty space with the rest to form the arrow "--->"
+                // this prints the option supplement and fills the empty space with the rest to form the arrow "--->"
                 wattron(menuSuppWin, A_BOLD);
-                mvwprintw(menuSuppWin, i, 0, "%s", "--FILE");
-                mvwhline(menuSuppWin, i, 6, '-', getmaxx(menuSuppWin) - 6);
+                mvwprintw(menuSuppWin, i, 0, "%s", optionsSupp[i]);
+                mvwhline(menuSuppWin, i, strlen(optionsSupp[i]), '-', getmaxx(menuSuppWin) - strlen(optionsSupp[i]));
                 mvwprintw(menuSuppWin, i, getmaxx(menuSuppWin) - 1, ">");
                 wattroff(menuSuppWin, A_BOLD);
             }
