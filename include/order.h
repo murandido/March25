@@ -21,4 +21,7 @@ typedef struct {
     int capacity;
 } OrderList;
 
+void initOrderList(OrderList *list);
+void addOrder(OrderList *list, Order order);
+
 #endif //MARCH25_ORDER_H
