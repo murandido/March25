@@ -22,6 +22,6 @@ typedef struct {
 } OrderList;
 
 void initOrderList(OrderList *list);
-void addOrder(OrderList *list, Order order);
+int addOrder(OrderList *list, Order order);
 
 #endif //MARCH25_ORDER_H
