@@ -49,3 +49,23 @@ int removeOrder(OrderList *list, const int id) {
     list->count--;
     return 1;
 }
+
+int loadOrdersToCSV(OrderList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "r");
+    if (!file) {
+        return 0;
+    }
+
+    char line[1024];
+
+    while (fgets(line, sizeof(line), file)) {
+        Order temp;
+
+        if (sscanf(line, "%d,%d,%[^,],%d", &temp.id, &temp.clientId, temp.date, &temp.total) == 4) {
+            addOrder(list, temp);
+        }
+    }
+
+    fclose(file);
+    return 1;
+}
