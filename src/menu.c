@@ -25,6 +25,9 @@ void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuS
     mvwaddch(borderWindow, 0, menuW, ACS_TTEE);
     mvwaddch(borderWindow, 0, menuW + menuSuppW, ACS_TTEE);
 
+    // write the system name
+    mvwprintw(borderWindow, 0, 1, "🅼 🅰 🆁 🅲 🅷 ❷ ❺ ");
+
     wrefresh(borderWindow);
 }
 
