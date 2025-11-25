@@ -90,3 +90,10 @@ int saveOrdersToCSV(const OrderList *list, const char *fileName) {
     fclose(file);
     return 1;
 }
+
+void freeOrderList(OrderList *list) {
+    free(list->data);
+    list->data = NULL;
+    list->count = 0;
+    list->capacity = 0;
+}

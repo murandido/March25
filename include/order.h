@@ -26,5 +26,6 @@ int addOrder(OrderList *list, Order order);
 int removeOrder(OrderList *list, int id);
 int loadOrdersToCSV(OrderList *list, const char *fileName);
 int saveOrdersToCSV(const OrderList *list, const char *fileName);
+void freeOrderList(OrderList *list);
 
 #endif //MARCH25_ORDER_H
