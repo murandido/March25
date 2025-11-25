@@ -50,7 +50,7 @@ int removeOrder(OrderList *list, const int id) {
     return 1;
 }
 
-int loadOrdersToCSV(OrderList *list, const char *fileName) {
+int loadOrdersFromCSV(OrderList *list, const char *fileName) {
     FILE *file = fopen(fileName, "r");
     if (!file) {
         return 0;

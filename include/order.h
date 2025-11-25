@@ -24,7 +24,7 @@ typedef struct {
 void initOrderList(OrderList *list);
 int addOrder(OrderList *list, Order order);
 int removeOrder(OrderList *list, int id);
-int loadOrdersToCSV(OrderList *list, const char *fileName);
+int loadOrdersFromCSV(OrderList *list, const char *fileName);
 int saveOrdersToCSV(const OrderList *list, const char *fileName);
 void freeOrderList(OrderList *list);
 
