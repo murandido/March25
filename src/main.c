@@ -1,6 +1,8 @@
 #include <ncursesw/curses.h>
 #include <locale.h>
 #include "../include/menu.h"
+#include  "../include/order.h"
+#include "../include/utils.h"
 
 int main() {
     setlocale (LC_ALL, "");
@@ -18,6 +20,18 @@ int main() {
         printf("Seu terminal nao suporta cores!");
         return 1;
     }
+
+    // init dynamic arrays
+
+    // check the data dir
+    if (!checkDataDir()) {
+        return 1;
+    }
+
+    // order array
+    OrderList orderList;
+    initOrderList(&orderList);
+    loadOrdersFromCSV(&orderList, "data/orders.csv");
 
     start_color();
     init_pair(1, COLOR_WHITE, COLOR_RED);
@@ -85,7 +99,7 @@ int main() {
 
     drawBorderWindow(borderWindow, mainBlockW, menuWinW, menuSuppWinW, topRowH);
 
-    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW);
+    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW, mainBlockW, menuWinW, menuSuppWinW, topRowH);
 
     keypad(borderWindow, TRUE);
 
@@ -95,6 +109,10 @@ int main() {
     delwin(menuSuppWin);
     delwin(infoWin);
     delwin(footerWin);
+
+    // save dynamic arrays
+    saveOrdersToCSV(&orderList, "data/orders.csv");
+    freeOrderList(&orderList);
 
     endwin();
 
