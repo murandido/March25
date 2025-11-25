@@ -14,6 +14,7 @@ typedef struct {
     char contactName[100];
 } Client;
 
+int validateCNPJ(const char *cnpjInput);
 int sameNumbers(const int *cpf_nums);
 int checkDigitVerifier(int DVs);
 int validateCPF(const char *cpf);
