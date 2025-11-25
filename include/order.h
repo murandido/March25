@@ -23,5 +23,6 @@ typedef struct {
 
 void initOrderList(OrderList *list);
 int addOrder(OrderList *list, Order order);
+int removeOrder(OrderList *list, int id);
 
 #endif //MARCH25_ORDER_H

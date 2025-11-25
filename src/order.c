@@ -30,3 +30,22 @@ int addOrder(OrderList *list, const Order order) {
     list->count++;
     return 1;
 }
+
+int removeOrder(OrderList *list, const int id) {
+    int i;
+    // search the index of the matching id
+    for (i = 0; i < list->count && list->data[i].id != id; i++) {};
+
+    // if didn't find, return 0
+    if (i == list->count) {
+        return 0;
+    }
+
+    // move all elements from right to left
+    for (; i < list->count - 1; i++) {
+        list->data[i] = list->data[i + 1];
+    }
+
+    list->count--;
+    return 1;
+}
