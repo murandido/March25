@@ -182,6 +182,157 @@ void showClientMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDO
 
 }
 
+void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+    char options[6][50] = {
+        "inserir_produto.exe",
+        "listar_produtos.exe",
+        "editar_produto.exe",
+        "remover_produto.exe",
+        "",
+        "voltar.exe"
+    };
+
+    char optionsSupp[6][50] = {
+        "--CMD",
+        "--CMD",
+        "--CMD",
+        "--CMD",
+        "",
+        "--CMD",
+    };
+
+    char descriptions[6][100] = {
+        "Cadastrar um novo produto no sistema.",
+        "Listar todos os produtos registrados.",
+        "Editar um produto especifico.",
+        "Remover um produto.",
+        "",
+        "Voltar para o menu principal."
+    };
+
+    int nOptions = 6;
+    int highlight = 0;
+    int key;
+
+    keypad(menuWin, TRUE);
+    flushinp();
+    keypad(menuWin, TRUE);
+
+    while (1) {
+        // clean windows
+        werase(menuWin);
+        werase(menuSuppWin);
+        werase(infoWin);
+        werase(footerWin);
+
+        for (int i = 0; i < nOptions; i++) {
+            // if it's option 5, needs to be blank, so do nothing
+            if (i == 4) continue;
+
+            if (i == highlight) {
+                // this prints the highlighted option and fill the empty space with ' ' (spaces), to everything be red
+                wattron(menuWin, COLOR_PAIR(1));
+                mvwprintw(menuWin, i, 0, "%s", options[i]);
+                mvwhline(menuWin, i, strlen(options[i]), ' ', getmaxx(menuWin) - strlen(options[i]));
+                wattroff(menuWin, COLOR_PAIR(1));
+
+                // this turns the '│' of the line red
+                wattron(borderWindow, COLOR_PAIR(1));
+                mvwaddch(borderWindow, i + 1, borderColX, ACS_VLINE);
+                wattroff(borderWindow, COLOR_PAIR(1));
+
+                // this prints the option supplement and fills the empty space with the rest to form the arrow "--->", everything bold and background red
+                wattron(menuSuppWin, COLOR_PAIR(1));
+                wattron(menuSuppWin, A_BOLD);
+                mvwprintw(menuSuppWin, i, 0, "%s", optionsSupp[i]);
+                mvwhline(menuSuppWin, i, strlen(optionsSupp[i]), '-', getmaxx(menuSuppWin) - strlen(optionsSupp[i]));
+                mvwprintw(menuSuppWin, i, getmaxx(menuSuppWin) - 1, ">");
+                wattroff(menuSuppWin, A_BOLD);
+                wattroff(menuSuppWin, COLOR_PAIR(1));
+
+                // this prints the description of the highlighted option
+                mvwprintw(infoWin, 0, 0, "%s", descriptions[i]);
+            } else {
+                // this print the not highlighted option
+                mvwprintw(menuWin, i, 0, "%s", options[i]);
+
+                // this turns the '│' of the line back to normal
+                wattroff(borderWindow, COLOR_PAIR(1));
+                mvwaddch(borderWindow, i + 1, borderColX, ACS_VLINE);
+
+                // this prints the option supplement and fills the empty space with the rest to form the arrow "--->"
+                wattron(menuSuppWin, A_BOLD);
+                mvwprintw(menuSuppWin, i, 0, "%s", optionsSupp[i]);
+                mvwhline(menuSuppWin, i, strlen(optionsSupp[i]), '-', getmaxx(menuSuppWin) - strlen(optionsSupp[i]));
+                mvwprintw(menuSuppWin, i, getmaxx(menuSuppWin) - 1, ">");
+                wattroff(menuSuppWin, A_BOLD);
+            }
+        }
+
+        // this prints a line of '-' in the blank space, with gray color
+        wattron(menuWin, A_DIM);
+        mvwhline(menuWin, 4, 0, '-', getmaxx(menuWin));
+        wattroff(menuWin, A_DIM);
+
+        wattron(menuSuppWin, A_DIM);
+        mvwhline(menuSuppWin, 4, 0, '-', getmaxx(menuSuppWin));
+        wattroff(menuSuppWin, A_DIM);
+
+        mvwprintw(footerWin, 0, 0, "PWD: /PRODUTOS/ │ Modulo de PRODUTOS. ENTER para confirmar.");
+
+        // refresh the windows
+        wrefresh(borderWindow);
+        wrefresh(menuWin);
+        wrefresh(menuSuppWin);
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        // get the pressed key
+        key = wgetch(menuWin);
+
+        // keys logic
+        switch (key) {
+            case KEY_UP:
+                highlight--;
+                if (highlight == 4) highlight--;
+                if (highlight < 0) highlight = nOptions - 1;
+                break;
+
+            case KEY_DOWN:
+                highlight++;
+                if (highlight == 4) highlight++;
+                if (highlight > nOptions - 1) highlight = 0;
+                break;
+
+            case 10:
+                switch (highlight) {
+                    // insert product
+                    case 0:
+                        break;
+                    // list products
+                    case 1:
+                        break;
+                    // edit product
+                    case 2:
+                        break;
+                    // remove product
+                    case 3:
+                        break;
+                    // go back
+                    case 5:
+                        return;
+                    default:
+                        break;
+                }
+                break;
+
+            default:
+                break;
+        }
+    }
+
+}
+
 void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
     char options[5][50] = {
         "adicionar_pedido.exe",
@@ -456,6 +607,10 @@ void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW 
                         break;
                     // products module
                     case 1:
+                        showProductMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
+                        touchwin(borderWindow);
+                        wrefresh(borderWindow);
                         break;
                     // orders module
                     case 2:
