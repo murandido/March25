@@ -69,3 +69,24 @@ int loadOrdersToCSV(OrderList *list, const char *fileName) {
     fclose(file);
     return 1;
 }
+
+int saveOrdersToCSV(const OrderList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "w");
+    if (!file) {
+        return 0;
+    }
+
+    for (int i = 0; i < list->count; i++) {
+        fprintf(
+            file,
+            "%d,%d,%s,%d\n",
+            list->data[i].id,
+            list->data[i].clientId,
+            list->data[i].date,
+            list->data[i].total
+        );
+    }
+
+    fclose(file);
+    return 1;
+}
