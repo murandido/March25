@@ -88,6 +88,21 @@ void freeClientList(ClientList *list) {
     list->capacity = 0;
 }
 
+int checkClientID(ClientList *List, int id) {
+
+    int i;
+
+    for(i = 0; i < List->Count; i++){
+
+        if(List->data[i].id == id){
+
+            return 1; // find the Client id;
+        }
+    }
+
+    return 0; // don't find the Client id
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);
