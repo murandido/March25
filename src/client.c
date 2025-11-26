@@ -81,6 +81,13 @@ int saveClientsToCSV(const ClientList *list, const char *fileName) {
     return 1;
 }
 
+void freeClientList(ClientList *list) {
+    free(list->data);
+    list->data = NULL;
+    list->count = 0;
+    list->capacity = 0;
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);
