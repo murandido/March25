@@ -1,6 +1,15 @@
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "../include/client.h"
+
+#define INITIAL_CAPACITY 10
+
+void initClientList(ClientList *list) {
+    list->data = (Client*) malloc(INITIAL_CAPACITY * sizeof(Client));
+    list->count = 0;
+    list->capacity = INITIAL_CAPACITY;
+}
 
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];

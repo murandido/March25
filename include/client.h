@@ -24,5 +24,7 @@ int validateCNPJ(const char *cnpjInput);
 int sameNumbers(const int *cpf_nums);
 int checkDigitVerifier(int DVs);
 int validateCPF(const char *cpf);
+void initClientList(ClientList *list);
+
 
 #endif //MARCH25_CLIENT_H
