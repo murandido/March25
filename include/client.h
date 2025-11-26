@@ -27,6 +27,7 @@ int validateCPF(const char *cpf);
 void initClientList(ClientList *list);
 int addClient(ClientList *list, const Client client);
 int loadClientsFromCSV(ClientList *list, const char *fileName);
+int saveClientsToCSV(const ClientList *list, const char *fileName);
 
 
 

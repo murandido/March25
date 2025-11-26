@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include "../include/client.h"
@@ -47,6 +48,33 @@ int loadClientsFromCSV(ClientList *list, const char *fileName) {
 
             addClient(list, temp);
         }
+    }
+
+    fclose(file);
+    return 1;
+}
+
+int saveClientsToCSV(const ClientList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "w");
+    if (!file) {
+        return 0;
+    }
+
+    for (int i = 0; i < list->count; i++) {
+        fprintf(
+            file,
+            "%d,%d,%s,%s,%s,%s,%s,%s,%s,%s\n",
+            list->data[i].id,
+            list->data[i].type,
+            list->data[i].name,
+            list->data[i].legalName,
+            list->data[i].address,
+            list->data[i].phoneNumber,
+            list->data[i].cpf,
+            list->data[i].cnpj,
+            list->data[i].email,
+            list->data[i].contactName
+        );
     }
 
     fclose(file);
