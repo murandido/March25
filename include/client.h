@@ -25,6 +25,7 @@ int sameNumbers(const int *cpf_nums);
 int checkDigitVerifier(int DVs);
 int validateCPF(const char *cpf);
 void initClientList(ClientList *list);
+int addClient(ClientList *list, const Client client);
 
 
 #endif //MARCH25_CLIENT_H

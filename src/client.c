@@ -11,6 +11,27 @@ void initClientList(ClientList *list) {
     list->capacity = INITIAL_CAPACITY;
 }
 
+int addClient(ClientList *list, const Client client) {
+    // if the array is full, doubles the size
+    if (list->count >= list->capacity) {
+        list->capacity *= 2;
+
+        void *temp = realloc(list->data, list->capacity * sizeof(Client));
+
+        // if the realloc fails, just return the function
+        if (temp == NULL) {
+            return 0;
+        }
+
+        list->data = (Client*) temp;
+    }
+
+    // add the client to the end of the list
+    list->data[list->count] = client;
+    list->count++;
+    return 1;
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);
