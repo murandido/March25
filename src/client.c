@@ -32,6 +32,27 @@ int addClient(ClientList *list, const Client client) {
     return 1;
 }
 
+int loadClientsFromCSV(ClientList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "r");
+    if (!file) {
+        return 0;
+    }
+
+    char line[1024];
+
+    while (fgets(line, sizeof(line), file)) {
+        Client temp;
+
+        if (sscanf(line, "%d,%d,%[^,],%[^,],%[^,],%[^,],%[^,],%[^,],%[^,],%[^\n]", &temp.id, &temp.type, temp.name, temp.legalName, temp.address, temp.phoneNumber, temp.cpf, temp.cnpj, temp.email, temp.contactName) == 10) {
+
+            addClient(list, temp);
+        }
+    }
+
+    fclose(file);
+    return 1;
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);

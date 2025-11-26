@@ -26,6 +26,8 @@ int checkDigitVerifier(int DVs);
 int validateCPF(const char *cpf);
 void initClientList(ClientList *list);
 int addClient(ClientList *list, const Client client);
+int loadClientsFromCSV(ClientList *list, const char *fileName);
+
 
 
 #endif //MARCH25_CLIENT_H
