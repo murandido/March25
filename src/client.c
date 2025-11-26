@@ -118,6 +118,21 @@ int checkClientCPF(ClientList *List, const char *num_cpf) {
     return 0; // don't find the Client cpf
 }
 
+int checkClientCNPJ(ClientList *List, const char *num_cnpj) {
+
+    int i;
+
+    for(i = 0; i < List->count; i++){
+
+        if(strcmp(List->data[i].cnpj, num_cnpj) == 0){
+
+            return 1; // find the Client cnpj;
+        }
+    }
+
+    return 0; // don't find the Client cnpj
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);

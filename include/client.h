@@ -31,6 +31,7 @@ int saveClientsToCSV(const ClientList *list, const char *fileName);
 void freeClientList(ClientList *list);
 int checkClientID(ClientList *List, int id);
 int checkClientCPF(ClientList *List, const char *num_cpf);
+int checkClientCNPJ(ClientList *List, const char *num_cnpj);
 
 
 
