@@ -92,7 +92,7 @@ int checkClientID(ClientList *List, int id) {
 
     int i;
 
-    for(i = 0; i < List->Count; i++){
+    for(i = 0; i < List->count; i++){
 
         if(List->data[i].id == id){
 
@@ -101,6 +101,21 @@ int checkClientID(ClientList *List, int id) {
     }
 
     return 0; // don't find the Client id
+}
+
+int checkClientCPF(ClientList *List, const char *num_cpf) {
+
+    int i;
+
+    for(i = 0; i < List->count; i++){
+
+        if(strcmp(List->data[i].cpf, num_cpf) == 0){
+
+            return 1; // find the Client cpf;
+        }
+    }
+
+    return 0; // don't find the Client cpf
 }
 
 int validateCNPJ(const char *cnpjInput) {
