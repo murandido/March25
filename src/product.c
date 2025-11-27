@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "../include/product.h"
 #define INITIAL_CAPACITY 10
-
+#define FILENAME "Produtos.csv"
 void initProductList(ProductList *list) {
     list->date = (Product*) malloc(INITIAL_CAPACITY * sizeof(Product));
     list->count = 0;
@@ -92,4 +92,33 @@ void listAllProducts(const ProductList *list) {
         Product p = list->date[i];
         printf("%d\t%s\t%s\t%d\n", p.id, p.name, p.description, p.price);
     }
+}
+int persistProducts(const ProductList *list) {
+    FILE *file = NULL; 
+
+    // 1. Abrir o arquivo no modo escrita ("a"). 
+    file = fopen(FILENAME, "a");
+
+    // 2. Verificação de Erro na Abertura
+    if (file == NULL) {
+        printf("ERRO: Não foi possível abrir ou criar o arquivo %s.\n", FILENAME);
+        return 1;
+    }
+    // 3. escrita.
+    for (int i = 0; i < list->count; i++) {
+        Product p = list->date[i];
+        
+        // Escreve os dados do produto.
+        // fprintf é usado para escrever em arquivos
+        fprintf(file, "%d,%s,%s,%d\n", 
+                p.id, 
+                p.name, 
+                p.description, 
+                p.price);
+    }
+    // 4. Fechar o Arquivo
+    fclose(file); 
+    
+    printf("Sucesso! %d produto(s) salvo(s) em '%s'.\n", list->count, FILENAME);
+    return 0;
 }

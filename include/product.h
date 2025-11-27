@@ -20,4 +20,5 @@ int productIdAnalysis(const ProductList *list, int id);
 Product Consultproduct(ProductList *list, int id);
 int DeleteProduct(ProductList *list, int id);
 void listAllProducts(const ProductList *list);
+int persistProducts(const ProductList *list);
 #endif //MARCH25_PRODUCT_H
