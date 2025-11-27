@@ -9,20 +9,20 @@ void initProductList(ProductList *list) {
     list->capacity = INITIAL_CAPACITY;
 }
 
-int productIdAnalysis(const ProductList *list, int id) {
-    // Percorre todos os produtos.
+int checkProductID(const ProductList *list, const int id) {
+    // go through all the products
     for (int i = 0; i < list->count; i++) {
-        // Verifica se o ID do produto atual corresponde ao ID procurado
+        // checks if the current product id matches the searched id
         if (list->data[i].id == id) {
-            return i; // Retorna onde o produto foi encontrado
+            return 1; // found the product id
         }
     }
-    return -1;
+
+    return 0;
 }
 
 int addProduct(ProductList *list, const Product product){
-    if (productIdAnalysis(list, product.id) != -1) { 
-        printf("ERRO: O produto com ID %d já está cadastrado. Adição cancelada.\n", product.id);
+    if (checkProductID(list, product.id)) {
         return 0;
     }
 
@@ -76,7 +76,7 @@ int DeleteProduct(ProductList *list, int id) {
 // Retorna a CÓPIA (por valor) do produto na variavel encontrada.
 Product Consultproduct(ProductList *list, int id) {
     
-    int box = productIdAnalysis(list, id);
+    int box = checkProductID(list, id);
 
     if (box != -1) {
         
