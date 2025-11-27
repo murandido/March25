@@ -17,4 +17,5 @@ typedef struct {
 void initProductList(ProductList *list);
 int addProduct(ProductList *list, Product product);
 int productIdAnalysis(const ProductList *list, int id);
+int DeleteProduct(ProductList *list, int id);
 #endif //MARCH25_PRODUCT_H

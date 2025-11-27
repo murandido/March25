@@ -47,3 +47,28 @@ int addProduct(ProductList *list, Product product){
     list->count++;
     return 1;
 }
+
+int DeleteProduct(ProductList *list, int id) {
+    int i;
+    // 1. Localização: Encontrar o produto a ser removido
+    for (i = 0; i < list->count && id != list->date[i].id; i++);
+
+    // 2. Verificação de Falha.
+    // Se i == list->count, o loop terminou sem encontrar o ID.
+    if (list->count == i) {
+        printf("ERRO: Produto com ID %d não encontrado.\n", id);
+        return 0; // 0 significa falha
+    }
+
+    // 3. Deslocamento (Shift): Preencher o espaço vazio
+    // O loop começa no índice 'i' onde o produto a ser removido está.
+    for (; i < list->count - 1; i++) {
+        list->date[i] = list->date[i + 1]; // Move o próximo elemento para a posição atual
+    }
+    
+    // 4. Decrementa a contagem
+    list->count--;
+
+    printf("Produto com ID %d removido com sucesso. Itens restantes: %d.\n", id, list->count);
+    return 1;
+}
