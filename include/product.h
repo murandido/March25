@@ -9,4 +9,10 @@ typedef struct {
     int stock;
 } Product;
 
+typedef struct {
+    Product *data;
+    int count;
+    int capacity;
+} ProductList;
+
 #endif //MARCH25_PRODUCT_H
