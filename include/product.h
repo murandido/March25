@@ -6,7 +6,6 @@ typedef struct {
     char description[100];
     char name[100];
     int price;
-    int stock;
 } Product;
 
 typedef struct {
@@ -14,5 +13,7 @@ typedef struct {
     int count;
     int capacity;
 } ProductList;
+
+void initProductList(ProductList *list);
 
 #endif //MARCH25_PRODUCT_H
