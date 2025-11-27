@@ -155,6 +155,36 @@ int removeClient(ClientList *List, int id) {
     return 1;
 }
 
+int printInfoClient(ClientList *List, int id) {
+
+    int i;
+
+    for(i = 0; i < List->count; i++){
+
+        if(List->data[i].id == id){
+
+            // find the Client id, print all informations about the Client;
+
+            printf("%d,%d,%s,%s,%s,%s,%s,%s,%s,%s\n",
+            list->data[i].id,
+            list->data[i].type,
+            list->data[i].name,
+            list->data[i].legalName,
+            list->data[i].address,
+            list->data[i].phoneNumber,
+            list->data[i].cpf,
+            list->data[i].cnpj,
+            list->data[i].email,
+            list->data[i].contactName
+            );
+
+            return 1;
+        }
+    }
+
+    return 0; // don't find the Client id
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);
