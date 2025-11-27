@@ -75,12 +75,12 @@ int DeleteProduct(ProductList *list, int id) {
 // 1. Localizar a caixa
 // 2. Verifica se o produto foi encontrado
 // Retorna a CÓPIA (por valor) do produto na variavel encontrada.
-Product ConsultarProduto(ProductList *list, int id) {
+Product Consultproduct(ProductList *list, int id) {
     
-    int caixa = productIdAnalysis(list, id);
+    int box = productIdAnalysis(list, id);
 
-    if (caixa != -1) {
+    if (box != -1) {
         
-        return list->date[caixa]; 
+        return list->date[box]; 
     }
 }
