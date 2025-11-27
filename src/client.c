@@ -133,6 +133,28 @@ int checkClientCNPJ(ClientList *List, const char *num_cnpj) {
     return 0; // don't find the Client cnpj
 }
 
+int removeClient(ClientList *List, int id) {
+
+    int i;
+
+    for(i = 0; i < List->count && id != List->data[i].id; i++);
+
+    if(List->count == i){
+
+        return 0;
+    }
+
+    for(;i < List->count - 1; i++){
+
+        List->data[i] = List->data[i+1];
+    }
+
+
+    List->count--;
+
+    return 1;
+}
+
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
     int length = strlen(cnpjInput);
