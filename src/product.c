@@ -66,17 +66,22 @@ int removeProduct(ProductList *list, const int id) {
 
     return 1;
 }
-// 1. Localizar a caixa
-// 2. Verifica se o produto foi encontrado
-// Retorna a CÓPIA (por valor) do produto na variavel encontrada.
-Product Consultproduct(ProductList *list, int id) {
-    
-    int box = checkProductID(list, id);
 
-    if (box != -1) {
-        
-        return list->data[box];
+Product getProduct(const ProductList *list, const int id) {
+    int i;
+    // find the product
+    for (i = 0; i < list->count && id != list->data[i].id; i++) {};
+
+    Product product = {-1, "", "", -1};
+
+    // if i == list->count, the loop finished without finding the id
+    if (list->count == i) {
+        return product;
     }
+
+    product = list->data[i];
+
+    return product;
 }
 void listAllProducts(const ProductList *list) {
     printf("Lista de Produtos:\n");
