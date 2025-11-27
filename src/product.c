@@ -47,28 +47,23 @@ int addProduct(ProductList *list, const Product product){
     return 1;
 }
 
-int DeleteProduct(ProductList *list, int id) {
+int removeProduct(ProductList *list, const int id) {
     int i;
-    // 1. Localização: Encontrar o produto a ser removido
+    // find the product to be removed
     for (i = 0; i < list->count && id != list->data[i].id; i++);
 
-    // 2. Verificação de Falha.
-    // Se i == list->count, o loop terminou sem encontrar o ID.
+    // if i == list->count, the loop finished without finding the id
     if (list->count == i) {
-        printf("ERRO: Produto com ID %d não encontrado.\n", id);
-        return 0; // 0 significa falha
+        return 0;
     }
 
-    // 3. Deslocamento (Shift): Preencher o espaço vazio
-    // O loop começa no índice 'i' onde o produto a ser removido está.
+    // move all elements from right to left
     for (; i < list->count - 1; i++) {
-        list->data[i] = list->data[i + 1]; // Move o próximo elemento para a posição atual
+        list->data[i] = list->data[i + 1]; // move the next element to the current position
     }
     
-    // 4. Decrementa a contagem
     list->count--;
 
-    printf("Produto com ID %d removido com sucesso. Itens restantes: %d.\n", id, list->count);
     return 1;
 }
 // 1. Localizar a caixa
