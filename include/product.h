@@ -19,5 +19,5 @@ int addProduct(ProductList *list, Product product);
 int checkProductID(const ProductList *list, int id);
 Product getProduct(const ProductList *list, int id);
 int removeProduct(ProductList *list, int id);
-void listAllProducts(const ProductList *list);
+
 #endif //MARCH25_PRODUCT_H

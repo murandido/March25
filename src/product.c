@@ -83,12 +83,3 @@ Product getProduct(const ProductList *list, const int id) {
 
     return product;
 }
-void listAllProducts(const ProductList *list) {
-    printf("Lista de Produtos:\n");
-    printf("ID\tNome\tDescrição\tPreço\n");
-
-    for (int i = 0; i < list->count; i++) {
-        Product p = list->data[i];
-        printf("%d\t%s\t%s\t%d\n", p.id, p.name, p.description, p.price);
-    }
-}
