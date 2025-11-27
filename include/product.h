@@ -9,11 +9,12 @@ typedef struct {
 } Product;
 
 typedef struct {
-    Product *data;
+    Product *date;
     int count;
     int capacity;
 } ProductList;
 
 void initProductList(ProductList *list);
+int addProduct(ProductList *list, Product product);
 
 #endif //MARCH25_PRODUCT_H
