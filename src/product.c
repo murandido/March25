@@ -4,7 +4,7 @@
 #define INITIAL_CAPACITY 10
 
 void initProductList(ProductList *list) {
-    list->date = (Product*) malloc(INITIAL_CAPACITY * sizeof(Product));
+    list->data = (Product*) malloc(INITIAL_CAPACITY * sizeof(Product));
     list->count = 0;
     list->capacity = INITIAL_CAPACITY;
 }
@@ -13,7 +13,7 @@ int productIdAnalysis(const ProductList *list, int id) {
     // Percorre todos os produtos.
     for (int i = 0; i < list->count; i++) {
         // Verifica se o ID do produto atual corresponde ao ID procurado
-        if (list->date[i].id == id) {
+        if (list->data[i].id == id) {
             return i; // Retorna onde o produto foi encontrado
         }
     }
@@ -30,19 +30,19 @@ int addProduct(ProductList *list, Product product){
         // dobra o tamanho.
         list->capacity *= 2;
 
-        Product *newDate = (Product*) realloc(list->date, list->capacity * sizeof(Product));
+        Product *newDate = (Product*) realloc(list->data, list->capacity * sizeof(Product));
 
         // if realoca a memoria e se falhar retorna 0.
         if (newDate == NULL) {
             return 0;
         }
 
-        list->date = (Product*) newDate;
+        list->data = (Product*) newDate;
         printf("Capacidade de produtos aumentada para %d\n", list->capacity);
     }
 
     // adiciona o novo produto ao final da lista.
-    list->date[list->count] = product;
+    list->data[list->count] = product;
     // incrementa a contagem de produtos na lista.
     list->count++;
     return 1;
@@ -51,7 +51,7 @@ int addProduct(ProductList *list, Product product){
 int DeleteProduct(ProductList *list, int id) {
     int i;
     // 1. Localização: Encontrar o produto a ser removido
-    for (i = 0; i < list->count && id != list->date[i].id; i++);
+    for (i = 0; i < list->count && id != list->data[i].id; i++);
 
     // 2. Verificação de Falha.
     // Se i == list->count, o loop terminou sem encontrar o ID.
@@ -63,7 +63,7 @@ int DeleteProduct(ProductList *list, int id) {
     // 3. Deslocamento (Shift): Preencher o espaço vazio
     // O loop começa no índice 'i' onde o produto a ser removido está.
     for (; i < list->count - 1; i++) {
-        list->date[i] = list->date[i + 1]; // Move o próximo elemento para a posição atual
+        list->data[i] = list->data[i + 1]; // Move o próximo elemento para a posição atual
     }
     
     // 4. Decrementa a contagem
@@ -81,7 +81,7 @@ Product Consultproduct(ProductList *list, int id) {
 
     if (box != -1) {
         
-        return list->date[box]; 
+        return list->data[box];
     }
 }
 void listAllProducts(const ProductList *list) {
@@ -89,7 +89,7 @@ void listAllProducts(const ProductList *list) {
     printf("ID\tNome\tDescrição\tPreço\n");
 
     for (int i = 0; i < list->count; i++) {
-        Product p = list->date[i];
+        Product p = list->data[i];
         printf("%d\t%s\t%s\t%d\n", p.id, p.name, p.description, p.price);
     }
 }

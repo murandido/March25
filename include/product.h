@@ -9,7 +9,7 @@ typedef struct {
 } Product;
 
 typedef struct {
-    Product *date;
+    Product *data;
     int count;
     int capacity;
 } ProductList;
