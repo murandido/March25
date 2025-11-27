@@ -72,3 +72,15 @@ int DeleteProduct(ProductList *list, int id) {
     printf("Produto com ID %d removido com sucesso. Itens restantes: %d.\n", id, list->count);
     return 1;
 }
+// 1. Localizar a caixa
+// 2. Verifica se o produto foi encontrado
+// Retorna a CÓPIA (por valor) do produto na variavel encontrada.
+Product ConsultarProduto(ProductList *list, int id) {
+    
+    int caixa = productIdAnalysis(list, id);
+
+    if (caixa != -1) {
+        
+        return list->date[caixa]; 
+    }
+}
