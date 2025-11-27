@@ -20,30 +20,29 @@ int productIdAnalysis(const ProductList *list, int id) {
     return -1;
 }
 
-int addProduct(ProductList *list, Product product){
+int addProduct(ProductList *list, const Product product){
     if (productIdAnalysis(list, product.id) != -1) { 
         printf("ERRO: O produto com ID %d já está cadastrado. Adição cancelada.\n", product.id);
         return 0;
     }
-    // Veridfica se esta cheio.
+
+    // verify if it's full
     if (list->count >= list->capacity) {
-        // dobra o tamanho.
+        // doubles the size
         list->capacity *= 2;
 
-        Product *newDate = (Product*) realloc(list->data, list->capacity * sizeof(Product));
+        void *temp = realloc(list->data, list->capacity * sizeof(Product));
 
-        // if realoca a memoria e se falhar retorna 0.
-        if (newDate == NULL) {
+        // if the realloc fails, just return the function
+        if (temp == NULL) {
             return 0;
         }
 
-        list->data = (Product*) newDate;
-        printf("Capacidade de produtos aumentada para %d\n", list->capacity);
+        list->data = (Product*) temp;
     }
 
-    // adiciona o novo produto ao final da lista.
+    // add the product to the end of the list
     list->data[list->count] = product;
-    // incrementa a contagem de produtos na lista.
     list->count++;
     return 1;
 }
