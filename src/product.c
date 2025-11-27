@@ -9,7 +9,22 @@ void initProductList(ProductList *list) {
     list->capacity = INITIAL_CAPACITY;
 }
 
+int productIdAnalysis(const ProductList *list, int id) {
+    // Percorre todos os produtos.
+    for (int i = 0; i < list->count; i++) {
+        // Verifica se o ID do produto atual corresponde ao ID procurado
+        if (list->date[i].id == id) {
+            return i; // Retorna onde o produto foi encontrado
+        }
+    }
+    return -1;
+}
+
 int addProduct(ProductList *list, Product product){
+    if (productIdAnalysis(list, product.id) != -1) { 
+        printf("ERRO: O produto com ID %d já está cadastrado. Adição cancelada.\n", product.id);
+        return 0;
+    }
     // Veridfica se esta cheio.
     if (list->count >= list->capacity) {
         // dobra o tamanho.
@@ -17,7 +32,7 @@ int addProduct(ProductList *list, Product product){
 
         Product *newDate = (Product*) realloc(list->date, list->capacity * sizeof(Product));
 
-        // if realoca a memoria falhar, retorna 0.
+        // if realoca a memoria e se falhar retorna 0.
         if (newDate == NULL) {
             return 0;
         }
