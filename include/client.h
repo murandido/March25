@@ -8,15 +8,32 @@ typedef struct {
     char legalName[100];
     char address[200];
     char phoneNumber[20];
-    char cpf[12];
+    char cpf[15];
     char cnpj[15];
     char email[100];
     char contactName[100];
 } Client;
 
+typedef struct {
+    Client *data;
+    int count;
+    int capacity;
+} ClientList;
+
 int validateCNPJ(const char *cnpjInput);
 int sameNumbers(const int *cpf_nums);
 int checkDigitVerifier(int DVs);
 int validateCPF(const char *cpf);
+void initClientList(ClientList *list);
+int addClient(ClientList *list, const Client client);
+int loadClientsFromCSV(ClientList *list, const char *fileName);
+int saveClientsToCSV(const ClientList *list, const char *fileName);
+void freeClientList(ClientList *list);
+int checkClientID(ClientList *List, int id);
+int checkClientCPF(ClientList *List, const char *num_cpf);
+int checkClientCNPJ(ClientList *List, const char *num_cnpj);
+int removeClient(ClientList *List, int id);
+
+
 
 #endif //MARCH25_CLIENT_H

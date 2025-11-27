@@ -1,6 +1,159 @@
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include "../include/client.h"
+
+#define INITIAL_CAPACITY 10
+
+void initClientList(ClientList *list) {
+    list->data = (Client*) malloc(INITIAL_CAPACITY * sizeof(Client));
+    list->count = 0;
+    list->capacity = INITIAL_CAPACITY;
+}
+
+int addClient(ClientList *list, const Client client) {
+    // if the array is full, doubles the size
+    if (list->count >= list->capacity) {
+        list->capacity *= 2;
+
+        void *temp = realloc(list->data, list->capacity * sizeof(Client));
+
+        // if the realloc fails, just return the function
+        if (temp == NULL) {
+            return 0;
+        }
+
+        list->data = (Client*) temp;
+    }
+
+    // add the client to the end of the list
+    list->data[list->count] = client;
+    list->count++;
+    return 1;
+}
+
+int loadClientsFromCSV(ClientList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "r");
+    if (!file) {
+        return 0;
+    }
+
+    char line[1024];
+
+    while (fgets(line, sizeof(line), file)) {
+        Client temp;
+
+        if (sscanf(line, "%d,%d,%[^,],%[^,],%[^,],%[^,],%[^,],%[^,],%[^,],%[^\n]", &temp.id, &temp.type, temp.name, temp.legalName, temp.address, temp.phoneNumber, temp.cpf, temp.cnpj, temp.email, temp.contactName) == 10) {
+
+            addClient(list, temp);
+        }
+    }
+
+    fclose(file);
+    return 1;
+}
+
+int saveClientsToCSV(const ClientList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "w");
+    if (!file) {
+        return 0;
+    }
+
+    for (int i = 0; i < list->count; i++) {
+        fprintf(
+            file,
+            "%d,%d,%s,%s,%s,%s,%s,%s,%s,%s\n",
+            list->data[i].id,
+            list->data[i].type,
+            list->data[i].name,
+            list->data[i].legalName,
+            list->data[i].address,
+            list->data[i].phoneNumber,
+            list->data[i].cpf,
+            list->data[i].cnpj,
+            list->data[i].email,
+            list->data[i].contactName
+        );
+    }
+
+    fclose(file);
+    return 1;
+}
+
+void freeClientList(ClientList *list) {
+    free(list->data);
+    list->data = NULL;
+    list->count = 0;
+    list->capacity = 0;
+}
+
+int checkClientID(ClientList *List, int id) {
+
+    int i;
+
+    for(i = 0; i < List->count; i++){
+
+        if(List->data[i].id == id){
+
+            return 1; // find the Client id;
+        }
+    }
+
+    return 0; // don't find the Client id
+}
+
+int checkClientCPF(ClientList *List, const char *num_cpf) {
+
+    int i;
+
+    for(i = 0; i < List->count; i++){
+
+        if(strcmp(List->data[i].cpf, num_cpf) == 0){
+
+            return 1; // find the Client cpf;
+        }
+    }
+
+    return 0; // don't find the Client cpf
+}
+
+int checkClientCNPJ(ClientList *List, const char *num_cnpj) {
+
+    int i;
+
+    for(i = 0; i < List->count; i++){
+
+        if(strcmp(List->data[i].cnpj, num_cnpj) == 0){
+
+            return 1; // find the Client cnpj;
+        }
+    }
+
+    return 0; // don't find the Client cnpj
+}
+
+int removeClient(ClientList *List, int id) {
+
+    int i;
+
+    for(i = 0; i < List->count && id != List->data[i].id; i++);
+
+    if(List->count == i){
+
+        return 0;
+    }
+
+    for(;i < List->count - 1; i++){
+
+        List->data[i] = List->data[i+1];
+    }
+
+
+    List->count--;
+
+    return 1;
+}
 
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
