@@ -48,6 +48,12 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
             continue;
         }
 
+        if (checkClientID(clientList, id)) {
+            printError(infoWin, row + 1, "Este ID ja esta cadastrado.");
+            row--;
+            continue;
+        }
+
         newClient.id = id;
         break;
     }
