@@ -84,6 +84,26 @@ Product getProduct(const ProductList *list, const int id) {
     return product;
 }
 
+int loadProductsFromCSV(ProductList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "r");
+    if (!file) {
+        return 0;
+    }
+
+    char line[1024];
+
+    while (fgets(line, sizeof(line), file)) {
+        Product temp;
+
+        if (sscanf(line, "%d,%[^,],%[^,],%d", &temp.id, temp.name, temp.description, &temp.price) == 4) {
+            addProduct(list, temp);
+        }
+    }
+
+    fclose(file);
+    return 1;
+}
+
 int saveProductsToCSV(const ProductList *list, const char *fileName) {
     FILE *file = fopen(fileName, "w");
     if (!file) {
