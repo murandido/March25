@@ -71,6 +71,55 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
         newClient.type = atoi(buffer);
         break;
     }
+
+    // document
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        if (newClient.type == 0) {
+            mvwprintw(infoWin, row++, 0, "Digite CPF (apenas numeros): ");
+        } else {
+            mvwprintw(infoWin, row++, 0, "Digite CNPJ (apenas numeros): ");
+        }
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 16);
+
+        if (newClient.type == 0) {
+            if (!validateCPF(buffer)) {
+                printError(infoWin, row + 1, "CPF invalido.");
+                row--;
+                continue;
+            }
+
+            if (checkClientCPF(clientList, buffer)) {
+                printError(infoWin, row + 1, "CPF ja cadastrado no sistema.");
+                row--;
+                continue;
+            }
+
+            strcpy(newClient.cpf, buffer);
+            strcpy(newClient.cnpj, " ");
+        } else {
+            if (!validateCNPJ(buffer)) {
+                printError(infoWin, row + 1, "CNPJ invalido.");
+                row--;
+                continue;
+            }
+
+            if (checkClientCNPJ(clientList, buffer)) {
+                printError(infoWin, row + 1, "CNPJ ja cadastrado no sistema.");
+                row--;
+                continue;
+            }
+
+            strcpy(newClient.cnpj, buffer);
+            strcpy(newClient.cpf, " ");
+        }
+
+        break;
+    }
 }
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
