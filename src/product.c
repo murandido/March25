@@ -83,3 +83,24 @@ Product getProduct(const ProductList *list, const int id) {
 
     return product;
 }
+
+int saveProductsToCSV(const ProductList *list, const char *fileName) {
+    FILE *file = fopen(fileName, "w");
+    if (!file) {
+        return 0;
+    }
+
+    for (int i = 0; i < list->count; i++) {
+        fprintf(
+            file,
+            "%d,%s,%s,%d\n",
+            list->data[i].id,
+            list->data[i].name,
+            list->data[i].description,
+            list->data[i].price
+        );
+    }
+
+    fclose(file);
+    return 1;
+}
