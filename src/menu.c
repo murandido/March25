@@ -1,6 +1,7 @@
 #include <ncursesw/curses.h>
 #include <string.h>
 #include "../include/menu.h"
+#include "../include/client.h"
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
@@ -478,7 +479,19 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
 
 }
 
-void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
+void showMainMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    const int borderColX,
+    const int mainBlockW,
+    const int menuW,
+    const int menuSuppW,
+    const int topRowH,
+    ClientList *clientList
+) {
     char options[5][50] = {
         "CLIENTES/",
         "PRODUTOS/",

@@ -1,6 +1,7 @@
 #ifndef MARCH25_MENU_H
 #define MARCH25_MENU_H
 #include <ncursesw/curses.h>
+#include "../include/client.h"
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH);
 
@@ -10,6 +11,18 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
 
 void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX);
 
-void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX, int mainBlockW, int menuW, int menuSuppW, int topRowH);
+void showMainMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    int borderColX,
+    int mainBlockW,
+    int menuW,
+    int menuSuppW,
+    int topRowH,
+    ClientList *clientList
+);
 
 #endif //MARCH25_MENU_H
