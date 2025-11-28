@@ -120,6 +120,46 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
 
         break;
     }
+
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "Endereco Completo: ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newClient.address, 199);
+
+    if (newClient.type == 0) { // individual client
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Nome Completo: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.name, 99);
+
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Celular: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.phoneNumber, 19);
+
+        // clear individual client fields
+        strcpy(newClient.legalName, " ");
+        strcpy(newClient.contactName, " ");
+    } else { // legal client
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Razao Social: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.legalName, 99);
+
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Nome de Contato: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.contactName, 99);
+
+        // clear individual client fields
+        strcpy(newClient.name, " ");
+        strcpy(newClient.phoneNumber, " ");
+    }
 }
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
