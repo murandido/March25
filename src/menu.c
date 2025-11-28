@@ -1,5 +1,6 @@
 #include <ncursesw/curses.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../include/menu.h"
 #include "../include/client.h"
 
@@ -9,6 +10,14 @@ void clearInfoInput(WINDOW *infoWin, const int startY) {
         mvwhline(infoWin, y, 0, ' ', maxW);
     }
     wrefresh(infoWin);
+}
+
+void printError(WINDOW *infoWin, const int y, const char *msg) {
+    wattron(infoWin, COLOR_PAIR(1));
+    mvwprintw(infoWin, y, 0, "%s", msg);
+    wattroff(infoWin, COLOR_PAIR(1));
+    wrefresh(infoWin);
+    napms(1500);
 }
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
