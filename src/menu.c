@@ -121,11 +121,19 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
         break;
     }
 
+    // address
     row += 2;
     mvwprintw(infoWin, row++, 0, "Endereco Completo: ");
     wmove(infoWin, row, 0);
     wrefresh(infoWin);
     wgetnstr(infoWin, newClient.address, 199);
+
+    // email
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "Email: ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newClient.email, 99);
 
     if (newClient.type == 0) { // individual client
         row += 2;
@@ -160,6 +168,24 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
         strcpy(newClient.name, " ");
         strcpy(newClient.phoneNumber, " ");
     }
+
+    // saving
+    if (addClient(clientList, newClient)) {
+        werase(infoWin);
+
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "CLIENTE ADICIONADO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro ao salvar cliente (Memoria cheia?).");
+    }
+
+    // Desliga cursor e echo
+    noecho();
+    curs_set(0);
+    wgetch(infoWin); // Espera o usuário ler
 }
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
