@@ -30,6 +30,7 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
 
     werase(infoWin);
 
+    // id
     while (1) {
         clearInfoInput(infoWin, row);
         mvwprintw(infoWin, row++, 0, "Digite o ID (Numerico) do cliente: ");
@@ -48,6 +49,26 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
         }
 
         newClient.id = id;
+        break;
+    }
+
+    // type
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Tipo (0=Fisica, 1=Juridica): ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 5);
+
+        if (strcmp(buffer, "0") != 0 && strcmp(buffer, "1") != 0) {
+            printError(infoWin, row + 1, "Digite apenas 0 ou 1.");
+            row--;
+            continue;
+        }
+
+        newClient.type = atoi(buffer);
         break;
     }
 }
