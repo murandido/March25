@@ -20,6 +20,38 @@ void printError(WINDOW *infoWin, const int y, const char *msg) {
     napms(1500);
 }
 
+void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
+    Client newClient;
+    char buffer[200];
+    int row = 0;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID (Numerico) do cliente: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+
+        // try to convert to int
+        const int id = atoi(buffer);
+
+        if (id <= 0) {
+            printError(infoWin, row + 1, "ID inválido. Digite um numero positivo.");
+            row--;
+            continue;
+        }
+
+        newClient.id = id;
+        break;
+    }
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -183,6 +215,7 @@ void showClientMenu(
                 switch (highlight) {
                     // insert client
                     case 0:
+                        insertClientCommand(infoWin, clientList);
                         break;
                     // list clients
                     case 1:
