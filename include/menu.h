@@ -3,14 +3,19 @@
 #include <ncursesw/curses.h>
 #include "../include/client.h"
 
+void clearInfoInput(WINDOW *infoWin, int startY);
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH);
-
-void showClientMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX);
-
+void showClientMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    int borderColX,
+    ClientList *clientList
+);
 void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX);
-
 void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX);
-
 void showMainMenu(
     WINDOW *menuWin,
     WINDOW *menuSuppWin,

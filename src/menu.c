@@ -3,6 +3,14 @@
 #include "../include/menu.h"
 #include "../include/client.h"
 
+void clearInfoInput(WINDOW *infoWin, const int startY) {
+    int maxW = getmaxx(infoWin);
+    for (int y = startY; y < maxW; y++) {
+        mvwhline(infoWin, y, 0, ' ', maxW);
+    }
+    wrefresh(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -32,7 +40,15 @@ void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuS
     wrefresh(borderWindow);
 }
 
-void showClientMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+void showClientMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    const int borderColX,
+    ClientList *clientList
+) {
     char options[6][50] = {
         "inserir_cliente.exe",
         "listar_clientes.exe",
@@ -613,7 +629,7 @@ void showMainMenu(
                 switch (highlight) {
                     // clients module
                     case 0:
-                        showClientMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        showClientMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX, clientList);
                         drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
                         touchwin(borderWindow);
                         wrefresh(borderWindow);
