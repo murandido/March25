@@ -25,14 +25,14 @@ int sameNumbers(const int *cpf_nums);
 int checkDigitVerifier(int DVs);
 int validateCPF(const char *cpf);
 void initClientList(ClientList *list);
-int addClient(ClientList *list, const Client client);
+int addClient(ClientList *list, Client client);
 int loadClientsFromCSV(ClientList *list, const char *fileName);
 int saveClientsToCSV(const ClientList *list, const char *fileName);
 void freeClientList(ClientList *list);
-int checkClientID(ClientList *List, int id);
-int checkClientCPF(ClientList *List, const char *num_cpf);
-int checkClientCNPJ(ClientList *List, const char *num_cnpj);
-int removeClient(ClientList *List, int id);
+int checkClientID(const ClientList *list, int id);
+int checkClientCPF(const ClientList *list, const char *num_cpf);
+int checkClientCNPJ(const ClientList *list, const char *num_cnpj);
+int removeClient(ClientList *list, int id);
 
 
 
