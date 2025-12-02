@@ -21,5 +21,6 @@ Product getProduct(const ProductList *list, int id);
 int removeProduct(ProductList *list, int id);
 int loadProductsFromCSV(ProductList *list, const char *fileName);
 int saveProductsToCSV(const ProductList *list, const char *fileName);
+void freeProductList(ProductList *list);
 
 #endif //MARCH25_PRODUCT_H

@@ -124,3 +124,10 @@ int saveProductsToCSV(const ProductList *list, const char *fileName) {
     fclose(file);
     return 1;
 }
+
+void freeProductList(ProductList *list) {
+    free(list->data);
+    list->data = NULL;
+    list->count = 0;
+    list->capacity = 0;
+}

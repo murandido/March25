@@ -2,6 +2,8 @@
 #include <locale.h>
 #include "../include/menu.h"
 #include  "../include/order.h"
+#include "../include/client.h"
+#include  "../include/product.h"
 #include "../include/utils.h"
 
 int main() {
@@ -27,6 +29,16 @@ int main() {
     if (!checkDataDir()) {
         return 1;
     }
+
+    // client array
+    ClientList clientList;
+    initClientList(&clientList);
+    loadClientsFromCSV(&clientList, "data/clients.csv");
+
+    // product array
+    ProductList productList;
+    initProductList(&productList);
+    loadProductsFromCSV(&productList, "data/products.csv");
 
     // order array
     OrderList orderList;
@@ -99,7 +111,7 @@ int main() {
 
     drawBorderWindow(borderWindow, mainBlockW, menuWinW, menuSuppWinW, topRowH);
 
-    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW, mainBlockW, menuWinW, menuSuppWinW, topRowH);
+    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW, mainBlockW, menuWinW, menuSuppWinW, topRowH, &clientList, &productList, &orderList);
 
     keypad(borderWindow, TRUE);
 
@@ -111,6 +123,10 @@ int main() {
     delwin(footerWin);
 
     // save dynamic arrays
+    saveClientsToCSV((&clientList), "data/clients.csv");
+    freeClientList(&clientList);
+    saveProductsToCSV((&productList), "data/products.csv");
+    freeProductList(&productList);
     saveOrdersToCSV(&orderList, "data/orders.csv");
     freeOrderList(&orderList);
 

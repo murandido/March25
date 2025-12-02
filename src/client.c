@@ -88,14 +88,9 @@ void freeClientList(ClientList *list) {
     list->capacity = 0;
 }
 
-int checkClientID(ClientList *List, int id) {
-
-    int i;
-
-    for(i = 0; i < List->count; i++){
-
-        if(List->data[i].id == id){
-
+int checkClientID(const ClientList *list, const int id) {
+    for(int i = 0; i < list->count; i++){
+        if(list->data[i].id == id){
             return 1; // find the Client id;
         }
     }
@@ -103,14 +98,9 @@ int checkClientID(ClientList *List, int id) {
     return 0; // don't find the Client id
 }
 
-int checkClientCPF(ClientList *List, const char *num_cpf) {
-
-    int i;
-
-    for(i = 0; i < List->count; i++){
-
-        if(strcmp(List->data[i].cpf, num_cpf) == 0){
-
+int checkClientCPF(const ClientList *list, const char *num_cpf) {
+    for(int i = 0; i < list->count; i++){
+        if(strcmp(list->data[i].cpf, num_cpf) == 0){
             return 1; // find the Client cpf;
         }
     }
@@ -118,14 +108,9 @@ int checkClientCPF(ClientList *List, const char *num_cpf) {
     return 0; // don't find the Client cpf
 }
 
-int checkClientCNPJ(ClientList *List, const char *num_cnpj) {
-
-    int i;
-
-    for(i = 0; i < List->count; i++){
-
-        if(strcmp(List->data[i].cnpj, num_cnpj) == 0){
-
+int checkClientCNPJ(const ClientList *list, const char *num_cnpj) {
+    for (int i = 0; i < list->count; i++) {
+        if (strcmp(list->data[i].cnpj, num_cnpj) == 0) {
             return 1; // find the Client cnpj;
         }
     }
@@ -133,31 +118,27 @@ int checkClientCNPJ(ClientList *List, const char *num_cnpj) {
     return 0; // don't find the Client cnpj
 }
 
-int removeClient(ClientList *List, int id) {
-
+int removeClient(ClientList *list, const int id) {
     int i;
+    for (i = 0; i < list->count && id != list->data[i].id; i++) {};
 
-    for(i = 0; i < List->count && id != List->data[i].id; i++);
-
-    if(List->count == i){
+    if (list->count == i) {
 
         return 0;
     }
 
-    for(;i < List->count - 1; i++){
-
-        List->data[i] = List->data[i+1];
+    for (;i < list->count - 1; i++) {
+        list->data[i] = list->data[i+1];
     }
 
-
-    List->count--;
+    list->count--;
 
     return 1;
 }
 
 int validateCNPJ(const char *cnpjInput) {
     int numbers[14];
-    int length = strlen(cnpjInput);
+    const int length = (int) strlen(cnpjInput);
     int count = 0;
 
     // extract only digits from the input string

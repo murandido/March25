@@ -1,6 +1,1343 @@
 #include <ncursesw/curses.h>
 #include <string.h>
+#include <stdlib.h>
 #include "../include/menu.h"
+#include "../include/client.h"
+#include "../include/product.h"
+#include "../include/order.h"
+
+void clearInfoInput(WINDOW *infoWin, const int startY) {
+    int maxW = getmaxx(infoWin);
+    for (int y = startY; y < maxW; y++) {
+        mvwhline(infoWin, y, 0, ' ', maxW);
+    }
+    wrefresh(infoWin);
+}
+
+void printError(WINDOW *infoWin, const int y, const char *msg) {
+    wattron(infoWin, COLOR_PAIR(1));
+    mvwprintw(infoWin, y, 0, "%s", msg);
+    wattroff(infoWin, COLOR_PAIR(1));
+    wrefresh(infoWin);
+    napms(1500);
+}
+
+void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
+    Client newClient;
+    char buffer[200];
+    int row = 0;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID (Numerico) do cliente: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+
+        // try to convert to int
+        const int id = atoi(buffer);
+
+        if (id <= 0) {
+            printError(infoWin, row + 1, "ID inválido. Digite um numero positivo.");
+            row--;
+            continue;
+        }
+
+        if (checkClientID(clientList, id)) {
+            printError(infoWin, row + 1, "Este ID ja esta cadastrado.");
+            row--;
+            continue;
+        }
+
+        newClient.id = id;
+        break;
+    }
+
+    // type
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Tipo (0=Fisica, 1=Juridica): ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 5);
+
+        if (strcmp(buffer, "0") != 0 && strcmp(buffer, "1") != 0) {
+            printError(infoWin, row + 1, "Digite apenas 0 ou 1.");
+            row--;
+            continue;
+        }
+
+        newClient.type = atoi(buffer);
+        break;
+    }
+
+    // document
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        if (newClient.type == 0) {
+            mvwprintw(infoWin, row++, 0, "Digite CPF (apenas numeros): ");
+        } else {
+            mvwprintw(infoWin, row++, 0, "Digite CNPJ (apenas numeros): ");
+        }
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 16);
+
+        if (newClient.type == 0) {
+            if (!validateCPF(buffer)) {
+                printError(infoWin, row + 1, "CPF invalido.");
+                row--;
+                continue;
+            }
+
+            if (checkClientCPF(clientList, buffer)) {
+                printError(infoWin, row + 1, "CPF ja cadastrado no sistema.");
+                row--;
+                continue;
+            }
+
+            strcpy(newClient.cpf, buffer);
+            strcpy(newClient.cnpj, " ");
+        } else {
+            if (!validateCNPJ(buffer)) {
+                printError(infoWin, row + 1, "CNPJ invalido.");
+                row--;
+                continue;
+            }
+
+            if (checkClientCNPJ(clientList, buffer)) {
+                printError(infoWin, row + 1, "CNPJ ja cadastrado no sistema.");
+                row--;
+                continue;
+            }
+
+            strcpy(newClient.cnpj, buffer);
+            strcpy(newClient.cpf, " ");
+        }
+
+        break;
+    }
+
+    // address
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "Endereco Completo: ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newClient.address, 199);
+
+    // email
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "Email: ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newClient.email, 99);
+
+    if (newClient.type == 0) { // individual client
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Nome Completo: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.name, 99);
+
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Celular: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.phoneNumber, 19);
+
+        // clear individual client fields
+        strcpy(newClient.legalName, " ");
+        strcpy(newClient.contactName, " ");
+    } else { // legal client
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Razao Social: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.legalName, 99);
+
+        row += 2;
+        mvwprintw(infoWin, row++, 0, "Nome de Contato: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, newClient.contactName, 99);
+
+        // clear individual client fields
+        strcpy(newClient.name, " ");
+        strcpy(newClient.phoneNumber, " ");
+    }
+
+    // saving
+    if (addClient(clientList, newClient)) {
+        werase(infoWin);
+
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "CLIENTE ADICIONADO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro ao salvar cliente (Memoria cheia?).");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void listClientsCommand(WINDOW *infoWin, WINDOW *footerWin, const ClientList *clientList) {
+    int key;
+    int page = 0;
+    const int ITEMS_PER_PAGE = 10;
+    const int totalClients = clientList->count;
+
+    // if there's no client, quit
+    if (totalClients == 0) {
+        werase(infoWin);
+        printError(infoWin, 5, "Nenhum cliente cadastrado.");
+        return;
+    }
+
+    keypad(infoWin, TRUE);
+    curs_set(0);
+    noecho();
+
+    while (1) {
+        werase(infoWin);
+
+        // pagination calculation
+        const int totalPages = (totalClients + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
+        const int startIndex = page * ITEMS_PER_PAGE;
+        int endIndex = startIndex + ITEMS_PER_PAGE;
+        if (endIndex > totalClients) endIndex = totalClients;
+
+        // table header
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 1, 1, "%-2s | %-20s | %-4s", "ID", "NOME/RAZAO", "TIPO");
+        mvwhline(infoWin, 2, 1, ACS_HLINE, getmaxx(infoWin) - 2);
+        wattroff(infoWin, A_BOLD);
+
+        int row = 3;
+        for (int i = startIndex; i < endIndex; i++) {
+            const Client c = clientList->data[i];
+
+            char displayName[30];
+            char type[5];
+
+            if (c.type == 0) {
+                strcpy(type, "PF");
+                strncpy(displayName, c.name, 19);
+            } else {
+                strcpy(type, "PJ");
+                strncpy(displayName, c.legalName, 19);
+            }
+            // guarantees a null terminator if truncation has occurred
+            displayName[24] = '\0';
+
+            mvwprintw(infoWin, row, 1, "%-2d | %-20s | %-4s",
+                      c.id, displayName, type);
+            row++;
+        }
+
+        // updates footer
+        werase(footerWin);
+        mvwprintw(footerWin, 0, 0, "Pagina %d/%d │ < > Navegar │ 'q' Sair", page + 1, totalPages);
+
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        key = wgetch(infoWin);
+
+        switch (key) {
+            case KEY_RIGHT:
+                if (page < totalPages - 1) page++;
+                break;
+            case KEY_LEFT:
+                if (page > 0) page--;
+                break;
+            case 'q':
+            case 'Q':
+                // restores the default footer before exiting
+                werase(footerWin);
+                mvwprintw(footerWin, 0, 0, "PWD: /CLIENTES/ │ Modulo de CLIENTES. ENTER para confirmar.");
+                wrefresh(footerWin);
+                return;
+            default:
+                break;
+        }
+    }
+}
+
+void editClientCommand(WINDOW *infoWin, const ClientList *clientList) {
+    char buffer[200];
+    int row = 0;
+    int clientIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    // search for the id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Digite o ID do cliente a editar: ");
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search for the client index
+        for (int i = 0; i < clientList->count; i++) {
+            if (clientList->data[i].id == id) {
+                clientIndex = i;
+                break;
+            }
+        }
+
+        if (clientIndex == -1) {
+            printError(infoWin, row + 1, "Cliente nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // pointer to the client that needs to be edited
+    Client *c = &clientList->data[clientIndex];
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+
+    // show who is
+    char displayName[50];
+    if (c->type == 0) strcpy(displayName, c->name);
+    else strcpy(displayName, c->legalName);
+
+    mvwprintw(infoWin, row++, 0, "Cliente: %s", displayName);
+    mvwprintw(infoWin, row++, 0, "Deseja editar? (S/N): ");
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Edicao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    // edit form
+    row++;
+    mvwprintw(infoWin, row++, 0, "Deixe em branco para manter o valor atual.");
+    row++;
+
+    // address
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row, 0, "Endereco [%s]: ", c->address);
+    row++;
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 199);
+    if (strlen(buffer) > 0) {
+        strcpy(c->address, buffer);
+    }
+
+    row += 2;
+    // email
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row, 0, "Email [%s]: ", c->email);
+    row++;
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 99);
+    if (strlen(buffer) > 0) {
+        strcpy(c->email, buffer);
+    }
+
+    // specific fields
+    if (c->type == 0) {
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Nome [%s]: ", c->name);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 99);
+        if (strlen(buffer) > 0) strcpy(c->name, buffer);
+
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Celular [%s]: ", c->phoneNumber);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 19);
+        if (strlen(buffer) > 0) strcpy(c->phoneNumber, buffer);
+
+    } else {
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Razao Social [%s]: ", c->legalName);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 99);
+        if (strlen(buffer) > 0) {
+            strcpy(c->legalName, buffer);
+        }
+
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Contato [%s]: ", c->contactName);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 99);
+        if (strlen(buffer) > 0) strcpy(c->contactName, buffer);
+    }
+
+    werase(infoWin);
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, 5, 2, "CLIENTE ATUALIZADO COM SUCESSO!");
+    mvwprintw(infoWin, 7, 2, "Pressione ENTER para voltar...");
+    wattroff(infoWin, A_BOLD);
+    wrefresh(infoWin);
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void removeClientCommand(WINDOW *infoWin, ClientList *clientList) {
+    char buffer[200];
+    int row = 0;
+    int clientIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // search for id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Digite o ID do cliente a remover: ");
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search for the index
+        for (int i = 0; i < clientList->count; i++) {
+            if (clientList->data[i].id == id) {
+                clientIndex = i;
+                break;
+            }
+        }
+
+        if (clientIndex == -1) {
+            printError(infoWin, row + 2, "Cliente nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // get the data to confirm
+    Client c = clientList->data[clientIndex];
+    char displayName[50];
+    if (c.type == 0) strcpy(displayName, c.name);
+    else strcpy(displayName, c.legalName);
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Cliente: %s", displayName);
+    mvwprintw(infoWin, row++, 0, "Documento: %s", (c.type == 0) ? c.cpf : c.cnpj);
+
+    row++;
+    wattron(infoWin, COLOR_PAIR(1));
+    mvwprintw(infoWin, row++, 0, "TEM CERTEZA? Essa acao e irreversivel! (S/N): ");
+    wattroff(infoWin, COLOR_PAIR(1));
+
+    // row++;
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Remocao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    if (removeClient(clientList, c.id)) {
+        werase(infoWin);
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "CLIENTE REMOVIDO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro desconhecido ao remover");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void insertProductCommand(WINDOW *infoWin, ProductList *productList) {
+    Product newProduct;
+    char buffer[200];
+    int row = 0;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID (Numerico) do produto: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+
+        // try to convert to int
+        const int id = atoi(buffer);
+
+        if (id <= 0) {
+            printError(infoWin, row + 1, "ID invalido. Digite um numero positivo.");
+            row--;
+            continue;
+        }
+
+        if (checkProductID(productList, id)) {
+            printError(infoWin, row + 1, "Este ID ja esta cadastrado.");
+            row--;
+            continue;
+        }
+
+        newProduct.id = id;
+        break;
+    }
+
+    // name
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Nome do Produto: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, newProduct.name, 99);
+
+        if (strlen(newProduct.name) == 0) {
+            printError(infoWin, row + 1, "O nome nao pode ser vazio.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // description
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "Descricao: ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newProduct.description, 99);
+
+    // price
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Preco (apenas numeros): ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+
+        // try to convert to int
+        const float priceFloat = atof(buffer);
+
+        if (priceFloat <= 0) {
+            printError(infoWin, row + 1, "Preco invalido. Digite um valor maior que 0.");
+            row--;
+            continue;
+        }
+
+        newProduct.price = (int) (priceFloat * 100);
+        break;
+    }
+
+    if (addProduct(productList, newProduct)) {
+        werase(infoWin);
+
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "PRODUTO ADICIONADO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro ao salvar produto (Memoria cheia?).");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void listProductsCommand(WINDOW *infoWin, WINDOW *footerWin, const ProductList *productList) {
+    int key;
+    int page = 0;
+    const int ITEMS_PER_PAGE = 10;
+    const int totalProducts = productList->count;
+
+    // if there's no product, quit
+    if (totalProducts == 0) {
+        werase(infoWin);
+        printError(infoWin, 5, "Nenhum produto cadastrado.");
+        return;
+    }
+
+    keypad(infoWin, TRUE);
+    curs_set(0);
+    noecho();
+
+    while (1) {
+        werase(infoWin);
+
+        // pagination calculation
+        const int totalPages = (totalProducts + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
+        const int startIndex = page * ITEMS_PER_PAGE;
+        int endIndex = startIndex + ITEMS_PER_PAGE;
+        if (endIndex > totalProducts) endIndex = totalProducts;
+
+        // table header
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 1, 1, "%-4s | %-15s | %-10s", "ID", "NOME", "PRECO");
+        mvwhline(infoWin, 2, 1, ACS_HLINE, getmaxx(infoWin) - 2);
+        wattroff(infoWin, A_BOLD);
+
+        int row = 3;
+        for (int i = startIndex; i < endIndex; i++) {
+            const Product p = productList->data[i];
+
+            char displayName[25];
+
+            strncpy(displayName, p.name, 14);
+            displayName[20] = '\0';
+
+            // format price (int cents to float)
+            const float priceFloat = p.price / 100.0f;
+
+            mvwprintw(infoWin, row, 1, "%-4d | %-15s | R$ %-7.2f",
+                      p.id, displayName, priceFloat);
+            row++;
+        }
+
+        // updates footer
+        werase(footerWin);
+        mvwprintw(footerWin, 0, 0, "Pagina %d/%d │ < > Navegar │ 'q' Sair", page + 1, totalPages);
+
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        key = wgetch(infoWin);
+
+        switch (key) {
+            case KEY_RIGHT:
+                if (page < totalPages - 1) page++;
+                break;
+            case KEY_LEFT:
+                if (page > 0) page--;
+                break;
+            case 'q':
+            case 'Q':
+                // restores the default footer before exiting
+                werase(footerWin);
+                mvwprintw(footerWin, 0, 0, "PWD: /PRODUTOS/ │ Modulo de PRODUTOS. ENTER para confirmar.");
+                wrefresh(footerWin);
+                return;
+            default:
+                break;
+        }
+    }
+}
+
+void editProductCommand(WINDOW *infoWin, ProductList *productList) {
+    char buffer[200];
+    int row = 0;
+    int productIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID do produto a editar: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        for (int i = 0; i < productList->count; i++) {
+            if (productList->data[i].id == id) {
+                productIndex = i;
+                break;
+            }
+        }
+
+        if (productIndex == -1) {
+            printError(infoWin, row + 1, "Produto nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // pointer to the product that is going to be edit
+    Product *p = &productList->data[productIndex];
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+
+    mvwprintw(infoWin, row++, 0, "Produto: %s", p->name);
+    mvwprintw(infoWin, row++, 0, "Deseja editar? (S/N): ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Edicao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    // edit form
+    row++;
+    mvwprintw(infoWin, row++, 0, "Deixe em branco para manter o valor atual.");
+    row++;
+
+    // name
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Nome [%s]: ", p->name);
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 99);
+    if (strlen(buffer) > 0) {
+        strcpy(p->name, buffer);
+    }
+
+    // description
+    row += 2;
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Descricao [%s]: ", p->description);
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 99);
+    if (strlen(buffer) > 0) {
+        strcpy(p->description, buffer);
+    }
+
+    // price
+    row += 2;
+    clearInfoInput(infoWin, row);
+    float currentPrice = p->price / 100.0f;
+    mvwprintw(infoWin, row++, 0, "Preco [R$ %.2f]: ", currentPrice);
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 10);
+    if (strlen(buffer) > 0) {
+        float newPriceFloat = atof(buffer);
+        if (newPriceFloat > 0) {
+            p->price = (int)(newPriceFloat * 100);
+        }
+    }
+
+    werase(infoWin);
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, 5, 2, "PRODUTO ATUALIZADO COM SUCESSO!");
+    mvwprintw(infoWin, 7, 2, "Pressione ENTER para voltar...");
+    wattroff(infoWin, A_BOLD);
+    wrefresh(infoWin);
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void removeProductCommand(WINDOW *infoWin, ProductList *productList) {
+    char buffer[200];
+    int row = 0;
+    int productIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // search for id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Digite o ID do produto a remover: ");
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search for the index
+        for (int i = 0; i < productList->count; i++) {
+            if (productList->data[i].id == id) {
+                productIndex = i;
+                break;
+            }
+        }
+
+        if (productIndex == -1) {
+            printError(infoWin, row + 2, "Produto nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // get the data to confirm
+    Product p = productList->data[productIndex];
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Produto: %s", p.name);
+    // format price
+    float priceFloat = p.price / 100.0f;
+    mvwprintw(infoWin, row++, 0, "Preco: R$ %.2f", priceFloat);
+
+    row++;
+    wattron(infoWin, COLOR_PAIR(1));
+    mvwprintw(infoWin, row++, 0, "TEM CERTEZA? Essa acao e irreversivel! (S/N): ");
+    wattroff(infoWin, COLOR_PAIR(1));
+
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Remocao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    if (removeProduct(productList, p.id)) {
+        werase(infoWin);
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "PRODUTO REMOVIDO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro desconhecido ao remover da memoria.");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void insertOrderCommand(WINDOW *infoWin, OrderList *orderList, ClientList *clientList, ProductList *productList) {
+    Order newOrder;
+    ItemOrder tempItems[50];
+    int itemCount = 0;
+    char buffer[200];
+    int row = 0;
+
+    // init totals
+    newOrder.total = 0;
+    // reset memory
+    memset(&newOrder, 0, sizeof(Order));
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+
+    // Order ID
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "ID do Pedido: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            printError(infoWin, row + 1, "ID invalido.");
+            row--;
+            continue;
+        }
+
+        // verify if exists a order with this ID
+        int exists = 0;
+        for(int i=0; i<orderList->count; i++) {
+            if(orderList->data[i].id == id) { exists = 1; break; }
+        }
+
+        if (exists) {
+            printError(infoWin, row + 1, "ID de pedido ja existe.");
+            row--;
+            continue;
+        }
+
+        newOrder.id = id;
+        break;
+    }
+
+    // Client ID
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "ID do Cliente: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int clientId = atoi(buffer);
+
+        int clientIdx = -1;
+        for(int i=0; i<clientList->count; i++) {
+            if(clientList->data[i].id == clientId) { clientIdx = i; break; }
+        }
+
+        if (clientIdx == -1) {
+            printError(infoWin, row + 1, "Cliente nao encontrado.");
+            row--;
+            continue;
+        }
+
+        // show the clients name to confirm
+        newOrder.clientId = clientId;
+        wattron(infoWin, A_DIM);
+        if(clientList->data[clientIdx].type == 0)
+            mvwprintw(infoWin, row, 0, "Cliente: %s", clientList->data[clientIdx].name);
+        else
+            mvwprintw(infoWin, row, 0, "Cliente: %s", clientList->data[clientIdx].legalName);
+        wattroff(infoWin, A_DIM);
+        row++;
+        break;
+    }
+
+    // date
+    row += 1;
+    mvwprintw(infoWin, row++, 0, "Data (DD/MM/AAAA): ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newOrder.date, 10);
+
+    // cart
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "--- ITENS DO PEDIDO ---");
+
+    while (1) {
+        if (itemCount >= 50) {
+            printError(infoWin, row, "Limite de itens atingido.");
+            break;
+        }
+
+        int prodId = 0;
+        int prodIdx = -1;
+
+        // ask product
+        while (1) {
+            clearInfoInput(infoWin, row);
+            mvwprintw(infoWin, row, 0, "ID do Produto: ");
+            wrefresh(infoWin);
+
+            wgetnstr(infoWin, buffer, 10);
+            prodId = atoi(buffer);
+
+            // search product
+            for(int i=0; i<productList->count; i++) {
+                if(productList->data[i].id == prodId) { prodIdx = i; break; }
+            }
+
+            if (prodIdx == -1) {
+                printError(infoWin, row + 1, "Produto nao encontrado.");
+                continue;
+            }
+            break;
+        }
+
+        // show selected product
+        Product p = productList->data[prodIdx];
+        wattron(infoWin, A_DIM);
+        mvwprintw(infoWin, row + 1, 0, "%s (R$ %.2f)", p.name, p.price / 100.0f);
+        wattroff(infoWin, A_DIM);
+
+        // ask quantity
+        int qtd = 0;
+        while(1) {
+            mvwprintw(infoWin, row + 2, 0, "Quantidade: ");
+            wrefresh(infoWin);
+            wgetnstr(infoWin, buffer, 10);
+            qtd = atoi(buffer);
+            if (qtd <= 0) {
+                printError(infoWin, row + 3, "Qtd invalida.");
+                continue;
+            }
+            break;
+        }
+
+        // add to the temp cart
+        ItemOrder item;
+        item.orderId = newOrder.id;
+        item.productId = prodId;
+        item.quantity = qtd;
+        item.subtotal = p.price * qtd;
+
+        tempItems[itemCount++] = item;
+        newOrder.total += item.subtotal;
+
+        // update total on screen
+        row += 4;
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, row, 0, "Total Parcial: R$ %.2f", newOrder.total / 100.0f);
+        wattroff(infoWin, A_BOLD);
+
+        // ask for more
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Adicionar outro item? (S/N): ");
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 5);
+
+        if (buffer[0] == 'n' || buffer[0] == 'N') {
+            break;
+        }
+
+        // Limpa área de itens para o próximo (visual cleaner)
+        // Ou apenas desce a linha. Vamos descer para manter histórico se couber,
+        // mas idealmente limparíamos essa seção se fossem muitos itens.
+        // Vamos limpar a área de input do item atual para reutilizar o espaço
+        for(int k=0; k<6; k++) {
+            mvwhline(infoWin, row - 6 + k, 0, ' ', getmaxx(infoWin));
+        }
+        row -= 6; // Volta o cursor para a posição de pedir produto
+    }
+
+    // --- 3. FINALIZAR E SALVAR ---
+    // Adiciona Pedido (Header) na lista e arquivo
+    if (addOrder(orderList, newOrder)) {
+        if (saveOrdersToCSV(orderList, "data/orders.csv")) {
+
+            // AGORA SALVAMOS OS ITENS (Append no arquivo de itens)
+            FILE *fileItems = fopen("data/items-order.csv", "a");
+            if (fileItems) {
+                for(int i=0; i<itemCount; i++) {
+                    fprintf(fileItems, "%d,%d,%d,%d\n",
+                        tempItems[i].orderId,
+                        tempItems[i].productId,
+                        tempItems[i].quantity,
+                        tempItems[i].subtotal);
+                }
+                fclose(fileItems);
+            }
+
+            werase(infoWin);
+            wattron(infoWin, A_BOLD);
+            mvwprintw(infoWin, 5, 2, "PEDIDO FINALIZADO COM SUCESSO!");
+            mvwprintw(infoWin, 6, 2, "Total: R$ %.2f", newOrder.total / 100.0f);
+            mvwprintw(infoWin, 8, 2, "Pressione qualquer tecla...");
+            wattroff(infoWin, A_BOLD);
+            wrefresh(infoWin);
+        } else {
+             printError(infoWin, 5, "Erro ao salvar pedido no disco.");
+        }
+    } else {
+        printError(infoWin, 5, "Erro ao salvar pedido na memoria.");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
+void listOrdersCommand(WINDOW *infoWin, WINDOW *footerWin, const OrderList *orderList, const ClientList *clientList) {
+    int key;
+    int page = 0;
+    const int ITEMS_PER_PAGE = 10;
+    const int totalOrders = orderList->count;
+
+    // if there's no order, quit
+    if (totalOrders == 0) {
+        werase(infoWin);
+        printError(infoWin, 5, "Nenhum pedido cadastrado.");
+        return;
+    }
+
+    keypad(infoWin, TRUE);
+    curs_set(0);
+    noecho();
+
+    while (1) {
+        werase(infoWin);
+
+        // pagination calculation
+        const int totalPages = (totalOrders + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
+
+        if (page >= totalPages) page = totalPages - 1;
+        if (page < 0) page = 0;
+
+        const int startIndex = page * ITEMS_PER_PAGE;
+        int endIndex = startIndex + ITEMS_PER_PAGE;
+        if (endIndex > totalOrders) endIndex = totalOrders;
+
+        // table header
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 1, 1, "%-2s | %-10s | %-10s", "ID", "CLIENTE", "TOTAL");
+        mvwhline(infoWin, 2, 1, ACS_HLINE, getmaxx(infoWin) - 2);
+        wattroff(infoWin, A_BOLD);
+
+        int row = 3;
+        for (int i = startIndex; i < endIndex; i++) {
+            const Order o = orderList->data[i];
+
+            // get client name
+            char clientName[25];
+            strcpy(clientName, "Desconhecido");
+
+            for (int j = 0; j < clientList->count; j++) {
+                if (clientList->data[j].id == o.clientId) {
+                    if (clientList->data[j].type == 0) // Individual
+                        strncpy(clientName, clientList->data[j].name, 9);
+                    else // Legal Entity
+                        strncpy(clientName, clientList->data[j].legalName, 9);
+                    break;
+                }
+            }
+            clientName[9] = '\0';
+
+            // format total price
+            float totalFloat = o.total / 100.0f;
+
+            mvwprintw(infoWin, row, 1, "%-2d | %-10s | R$ %-7.2f",
+                      o.id, clientName, totalFloat);
+            row++;
+        }
+
+        // updates footer
+        werase(footerWin);
+        mvwprintw(footerWin, 0, 0, "Pagina %d/%d │ < > Navegar │ 'q' Sair", page + 1, totalPages);
+
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        key = wgetch(infoWin);
+
+        switch (key) {
+            case KEY_RIGHT:
+                if (page < totalPages - 1) page++;
+                break;
+            case KEY_LEFT:
+                if (page > 0) page--;
+                break;
+            case 'q':
+            case 'Q':
+                // restores default footer
+                werase(footerWin);
+                mvwprintw(footerWin, 0, 0, "PWD: /PEDIDOS/ │ Modulo de PEDIDOS. ENTER para confirmar.");
+                wrefresh(footerWin);
+                return;
+            default:
+                break;
+        }
+    }
+}
+
+void viewOrderDetailsCommand(WINDOW *infoWin, const OrderList *orderList, const ClientList *clientList, const ProductList *productList) {
+    char buffer[200];
+    int row = 0;
+    int orderIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // search for order id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID do pedido: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search in the list
+        for (int i = 0; i < orderList->count; i++) {
+            if (orderList->data[i].id == id) {
+                orderIndex = i;
+                break;
+            }
+        }
+
+        if (orderIndex == -1) {
+            printError(infoWin, row + 1, "Pedido nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // order found
+    const Order o = orderList->data[orderIndex];
+
+    // get client name
+    char clientName[50];
+    strcpy(clientName, "Desconhecido");
+    for(int i=0; i<clientList->count; i++) {
+        if(clientList->data[i].id == o.clientId) {
+            if(clientList->data[i].type == 0) strcpy(clientName, clientList->data[i].name);
+            else strcpy(clientName, clientList->data[i].legalName);
+            break;
+        }
+    }
+
+    // show header
+    noecho();
+    curs_set(0);
+    werase(infoWin);
+
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, 0, 0, "PEDIDO #%d", o.id);
+    wattroff(infoWin, A_BOLD);
+
+    mvwprintw(infoWin, 1, 0, "Cliente: %s (ID: %d)", clientName, o.clientId);
+    mvwprintw(infoWin, 2, 0, "Data: %s", o.date);
+
+    mvwhline(infoWin, 3, 0, ACS_HLINE, getmaxx(infoWin));
+
+    // show items (reading from CSV)
+    wattron(infoWin, A_UNDERLINE);
+    mvwprintw(infoWin, 4, 0, "%-2s | %-10s | %-3s | %-8s", "ID", "PRODUTO", "QTD", "SUBTOTAL");
+    wattroff(infoWin, A_UNDERLINE);
+
+    int itemRow = 5;
+    FILE *file = fopen("data/itens_pedido.csv", "r");
+    if (file) {
+        char line[256];
+        while (fgets(line, sizeof(line), file)) {
+            ItemOrder item;
+            // parse: orderId, productId, quantity, subtotal
+            if (sscanf(line, "%d,%d,%d,%d", &item.orderId, &item.productId, &item.quantity, &item.subtotal) == 4) {
+
+                // filter items for this order
+                if (item.orderId == o.id) {
+                    // get product name
+                    char prodName[25];
+                    strcpy(prodName, "---");
+                    for(int p=0; p<productList->count; p++) {
+                        if(productList->data[p].id == item.productId) {
+                            strncpy(prodName, productList->data[p].name, 9);
+                            break;
+                        }
+                    }
+                    prodName[9] = '\0';
+
+                    float subFloat = item.subtotal / 100.0f;
+
+                    // simple pagination check (stop printing if full)
+                    if (itemRow < getmaxy(infoWin) - 2) {
+                        mvwprintw(infoWin, itemRow, 0, "%-2d | %-10s | %-3d | R$ %-8.2f",
+                                  item.productId, prodName, item.quantity, subFloat);
+                        itemRow++;
+                    }
+                }
+            }
+        }
+        fclose(file);
+    } else {
+        mvwprintw(infoWin, 5, 0, "Nenhum item encontrado (arquivo vazio?).");
+    }
+
+    // order footer
+    mvwhline(infoWin, itemRow, 0, ACS_HLINE, getmaxx(infoWin));
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, itemRow + 1, 0, "TOTAL DO PEDIDO: R$ %.2f", o.total / 100.0f);
+    wattroff(infoWin, A_BOLD);
+
+    mvwprintw(infoWin, itemRow + 3, 0, "Pressione qualquer tecla para voltar...");
+    wrefresh(infoWin);
+    wgetch(infoWin);
+}
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
@@ -31,7 +1368,15 @@ void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuS
     wrefresh(borderWindow);
 }
 
-void showClientMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+void showClientMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    const int borderColX,
+    ClientList *clientList
+) {
     char options[6][50] = {
         "inserir_cliente.exe",
         "listar_clientes.exe",
@@ -157,15 +1502,21 @@ void showClientMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDO
                 switch (highlight) {
                     // insert client
                     case 0:
+                        insertClientCommand(infoWin, clientList);
                         break;
                     // list clients
                     case 1:
+                        listClientsCommand(infoWin, footerWin, clientList);
+                        touchwin(infoWin);
+                        touchwin(footerWin);
                         break;
                     // edit client
                     case 2:
+                        editClientCommand(infoWin, clientList);
                         break;
                     // remove
                     case 3:
+                        removeClientCommand(infoWin, clientList);
                         break;
                     // go back
                     case 5:
@@ -182,7 +1533,15 @@ void showClientMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDO
 
 }
 
-void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+void showProductMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    int borderColX,
+    ProductList *productList
+) {
     char options[6][50] = {
         "inserir_produto.exe",
         "listar_produtos.exe",
@@ -308,15 +1667,21 @@ void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WIND
                 switch (highlight) {
                     // insert product
                     case 0:
+                        insertProductCommand(infoWin, productList);
                         break;
                     // list products
                     case 1:
+                        listProductsCommand(infoWin, footerWin, productList);
+                        touchwin(infoWin);
+                        touchwin(footerWin);
                         break;
                     // edit product
                     case 2:
+                        editProductCommand(infoWin, productList);
                         break;
                     // remove product
                     case 3:
+                        removeProductCommand(infoWin, productList);
                         break;
                     // go back
                     case 5:
@@ -333,7 +1698,17 @@ void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WIND
 
 }
 
-void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+void showOrderMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    int borderColX,
+    OrderList *orderList,
+    ClientList *clientList,
+    ProductList *productList
+) {
     char options[5][50] = {
         "adicionar_pedido.exe",
         "mostrar_pedidos.exe",
@@ -456,12 +1831,17 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
                 switch (highlight) {
                     // insert order
                     case 0:
+                        insertOrderCommand(infoWin, orderList, clientList, productList);
                         break;
                     // list orders
                     case 1:
+                        listOrdersCommand(infoWin, footerWin, orderList, clientList);
+                        touchwin(infoWin);
+                        touchwin(footerWin);
                         break;
                     // view order
                     case 2:
+                        viewOrderDetailsCommand(infoWin, orderList, clientList, productList);
                         break;
                         // go back
                     case 4:
@@ -478,7 +1858,21 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
 
 }
 
-void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
+void showMainMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    const int borderColX,
+    const int mainBlockW,
+    const int menuW,
+    const int menuSuppW,
+    const int topRowH,
+    ClientList *clientList,
+    ProductList *productList,
+    OrderList *orderList
+) {
     char options[5][50] = {
         "CLIENTES/",
         "PRODUTOS/",
@@ -600,21 +1994,21 @@ void showMainMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW 
                 switch (highlight) {
                     // clients module
                     case 0:
-                        showClientMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        showClientMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX, clientList);
                         drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
                         touchwin(borderWindow);
                         wrefresh(borderWindow);
                         break;
                     // products module
                     case 1:
-                        showProductMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        showProductMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX, productList);
                         drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
                         touchwin(borderWindow);
                         wrefresh(borderWindow);
                         break;
                     // orders module
                     case 2:
-                        showOrderMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        showOrderMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX, orderList, clientList, productList);
                         drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
                         touchwin(borderWindow);
                         wrefresh(borderWindow);
