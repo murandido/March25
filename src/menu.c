@@ -4,6 +4,7 @@
 #include "../include/menu.h"
 #include "../include/client.h"
 #include "../include/product.h"
+#include "../include/order.h"
 
 void clearInfoInput(WINDOW *infoWin, const int startY) {
     int maxW = getmaxx(infoWin);
@@ -903,6 +904,225 @@ void removeProductCommand(WINDOW *infoWin, ProductList *productList) {
     wgetch(infoWin);
 }
 
+void insertOrderCommand(WINDOW *infoWin, OrderList *orderList, ClientList *clientList, ProductList *productList) {
+    Order newOrder;
+    ItemOrder tempItems[50];
+    int itemCount = 0;
+    char buffer[200];
+    int row = 0;
+
+    // init totals
+    newOrder.total = 0;
+    // reset memory
+    memset(&newOrder, 0, sizeof(Order));
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+
+    // Order ID
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "ID do Pedido: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            printError(infoWin, row + 1, "ID invalido.");
+            row--;
+            continue;
+        }
+
+        // verify if exists a order with this ID
+        int exists = 0;
+        for(int i=0; i<orderList->count; i++) {
+            if(orderList->data[i].id == id) { exists = 1; break; }
+        }
+
+        if (exists) {
+            printError(infoWin, row + 1, "ID de pedido ja existe.");
+            row--;
+            continue;
+        }
+
+        newOrder.id = id;
+        break;
+    }
+
+    // Client ID
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "ID do Cliente: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int clientId = atoi(buffer);
+
+        int clientIdx = -1;
+        for(int i=0; i<clientList->count; i++) {
+            if(clientList->data[i].id == clientId) { clientIdx = i; break; }
+        }
+
+        if (clientIdx == -1) {
+            printError(infoWin, row + 1, "Cliente nao encontrado.");
+            row--;
+            continue;
+        }
+
+        // show the clients name to confirm
+        newOrder.clientId = clientId;
+        wattron(infoWin, A_DIM);
+        if(clientList->data[clientIdx].type == 0)
+            mvwprintw(infoWin, row, 0, "Cliente: %s", clientList->data[clientIdx].name);
+        else
+            mvwprintw(infoWin, row, 0, "Cliente: %s", clientList->data[clientIdx].legalName);
+        wattroff(infoWin, A_DIM);
+        row++;
+        break;
+    }
+
+    // date
+    row += 1;
+    mvwprintw(infoWin, row++, 0, "Data (DD/MM/AAAA): ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newOrder.date, 10);
+
+    // cart
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "--- ITENS DO PEDIDO ---");
+
+    while (1) {
+        if (itemCount >= 50) {
+            printError(infoWin, row, "Limite de itens atingido.");
+            break;
+        }
+
+        int prodId = 0;
+        int prodIdx = -1;
+
+        // ask product
+        while (1) {
+            clearInfoInput(infoWin, row);
+            mvwprintw(infoWin, row, 0, "ID do Produto: ");
+            wrefresh(infoWin);
+
+            wgetnstr(infoWin, buffer, 10);
+            prodId = atoi(buffer);
+
+            // search product
+            for(int i=0; i<productList->count; i++) {
+                if(productList->data[i].id == prodId) { prodIdx = i; break; }
+            }
+
+            if (prodIdx == -1) {
+                printError(infoWin, row + 1, "Produto nao encontrado.");
+                continue;
+            }
+            break;
+        }
+
+        // show selected product
+        Product p = productList->data[prodIdx];
+        wattron(infoWin, A_DIM);
+        mvwprintw(infoWin, row + 1, 0, "%s (R$ %.2f)", p.name, p.price / 100.0f);
+        wattroff(infoWin, A_DIM);
+
+        // ask quantity
+        int qtd = 0;
+        while(1) {
+            mvwprintw(infoWin, row + 2, 0, "Quantidade: ");
+            wrefresh(infoWin);
+            wgetnstr(infoWin, buffer, 10);
+            qtd = atoi(buffer);
+            if (qtd <= 0) {
+                printError(infoWin, row + 3, "Qtd invalida.");
+                continue;
+            }
+            break;
+        }
+
+        // add to the temp cart
+        ItemOrder item;
+        item.orderId = newOrder.id;
+        item.productId = prodId;
+        item.quantity = qtd;
+        item.subtotal = p.price * qtd;
+
+        tempItems[itemCount++] = item;
+        newOrder.total += item.subtotal;
+
+        // update total on screen
+        row += 4;
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, row, 0, "Total Parcial: R$ %.2f", newOrder.total / 100.0f);
+        wattroff(infoWin, A_BOLD);
+
+        // ask for more
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Adicionar outro item? (S/N): ");
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 5);
+
+        if (buffer[0] == 'n' || buffer[0] == 'N') {
+            break;
+        }
+
+        // Limpa área de itens para o próximo (visual cleaner)
+        // Ou apenas desce a linha. Vamos descer para manter histórico se couber,
+        // mas idealmente limparíamos essa seção se fossem muitos itens.
+        // Vamos limpar a área de input do item atual para reutilizar o espaço
+        for(int k=0; k<6; k++) {
+            mvwhline(infoWin, row - 6 + k, 0, ' ', getmaxx(infoWin));
+        }
+        row -= 6; // Volta o cursor para a posição de pedir produto
+    }
+
+    // --- 3. FINALIZAR E SALVAR ---
+    // Adiciona Pedido (Header) na lista e arquivo
+    if (addOrder(orderList, newOrder)) {
+        if (saveOrdersToCSV(orderList, "data/orders.csv")) {
+
+            // AGORA SALVAMOS OS ITENS (Append no arquivo de itens)
+            FILE *fileItems = fopen("data/items-order.csv", "a");
+            if (fileItems) {
+                for(int i=0; i<itemCount; i++) {
+                    fprintf(fileItems, "%d,%d,%d,%d\n",
+                        tempItems[i].orderId,
+                        tempItems[i].productId,
+                        tempItems[i].quantity,
+                        tempItems[i].subtotal);
+                }
+                fclose(fileItems);
+            }
+
+            werase(infoWin);
+            wattron(infoWin, A_BOLD);
+            mvwprintw(infoWin, 5, 2, "PEDIDO FINALIZADO COM SUCESSO!");
+            mvwprintw(infoWin, 6, 2, "Total: R$ %.2f", newOrder.total / 100.0f);
+            mvwprintw(infoWin, 8, 2, "Pressione qualquer tecla...");
+            wattroff(infoWin, A_BOLD);
+            wrefresh(infoWin);
+        } else {
+             printError(infoWin, 5, "Erro ao salvar pedido no disco.");
+        }
+    } else {
+        printError(infoWin, 5, "Erro ao salvar pedido na memoria.");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -1262,7 +1482,17 @@ void showProductMenu(
 
 }
 
-void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+void showOrderMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    int borderColX,
+    OrderList *orderList,
+    ClientList *clientList,
+    ProductList *productList
+) {
     char options[5][50] = {
         "adicionar_pedido.exe",
         "mostrar_pedidos.exe",
@@ -1385,6 +1615,7 @@ void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW
                 switch (highlight) {
                     // insert order
                     case 0:
+                        insertOrderCommand(infoWin, orderList, clientList, productList);
                         break;
                     // list orders
                     case 1:
@@ -1419,7 +1650,8 @@ void showMainMenu(
     const int menuSuppW,
     const int topRowH,
     ClientList *clientList,
-    ProductList *productList
+    ProductList *productList,
+    OrderList *orderList
 ) {
     char options[5][50] = {
         "CLIENTES/",
@@ -1556,7 +1788,7 @@ void showMainMenu(
                         break;
                     // orders module
                     case 2:
-                        showOrderMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        showOrderMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX, orderList, clientList, productList);
                         drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
                         touchwin(borderWindow);
                         wrefresh(borderWindow);

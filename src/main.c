@@ -111,7 +111,7 @@ int main() {
 
     drawBorderWindow(borderWindow, mainBlockW, menuWinW, menuSuppWinW, topRowH);
 
-    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW, mainBlockW, menuWinW, menuSuppWinW, topRowH, &clientList, &productList);
+    showMainMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, menuWinW, mainBlockW, menuWinW, menuSuppWinW, topRowH, &clientList, &productList, &orderList);
 
     keypad(borderWindow, TRUE);
 
