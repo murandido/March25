@@ -1123,6 +1123,98 @@ void insertOrderCommand(WINDOW *infoWin, OrderList *orderList, ClientList *clien
     wgetch(infoWin);
 }
 
+void listOrdersCommand(WINDOW *infoWin, WINDOW *footerWin, const OrderList *orderList, const ClientList *clientList) {
+    int key;
+    int page = 0;
+    const int ITEMS_PER_PAGE = 10;
+    const int totalOrders = orderList->count;
+
+    // if there's no order, quit
+    if (totalOrders == 0) {
+        werase(infoWin);
+        printError(infoWin, 5, "Nenhum pedido cadastrado.");
+        return;
+    }
+
+    keypad(infoWin, TRUE);
+    curs_set(0);
+    noecho();
+
+    while (1) {
+        werase(infoWin);
+
+        // pagination calculation
+        const int totalPages = (totalOrders + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
+
+        if (page >= totalPages) page = totalPages - 1;
+        if (page < 0) page = 0;
+
+        const int startIndex = page * ITEMS_PER_PAGE;
+        int endIndex = startIndex + ITEMS_PER_PAGE;
+        if (endIndex > totalOrders) endIndex = totalOrders;
+
+        // table header
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 1, 1, "%-2s | %-10s | %-10s", "ID", "CLIENTE", "TOTAL");
+        mvwhline(infoWin, 2, 1, ACS_HLINE, getmaxx(infoWin) - 2);
+        wattroff(infoWin, A_BOLD);
+
+        int row = 3;
+        for (int i = startIndex; i < endIndex; i++) {
+            const Order o = orderList->data[i];
+
+            // get client name
+            char clientName[25];
+            strcpy(clientName, "Desconhecido");
+
+            for (int j = 0; j < clientList->count; j++) {
+                if (clientList->data[j].id == o.clientId) {
+                    if (clientList->data[j].type == 0) // Individual
+                        strncpy(clientName, clientList->data[j].name, 9);
+                    else // Legal Entity
+                        strncpy(clientName, clientList->data[j].legalName, 9);
+                    break;
+                }
+            }
+            clientName[9] = '\0';
+
+            // format total price
+            float totalFloat = o.total / 100.0f;
+
+            mvwprintw(infoWin, row, 1, "%-2d | %-10s | R$ %-7.2f",
+                      o.id, clientName, totalFloat);
+            row++;
+        }
+
+        // updates footer
+        werase(footerWin);
+        mvwprintw(footerWin, 0, 0, "Pagina %d/%d │ < > Navegar │ 'q' Sair", page + 1, totalPages);
+
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        key = wgetch(infoWin);
+
+        switch (key) {
+            case KEY_RIGHT:
+                if (page < totalPages - 1) page++;
+                break;
+            case KEY_LEFT:
+                if (page > 0) page--;
+                break;
+            case 'q':
+            case 'Q':
+                // restores default footer
+                werase(footerWin);
+                mvwprintw(footerWin, 0, 0, "PWD: /PEDIDOS/ │ Modulo de PEDIDOS. ENTER para confirmar.");
+                wrefresh(footerWin);
+                return;
+            default:
+                break;
+        }
+    }
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -1619,6 +1711,9 @@ void showOrderMenu(
                         break;
                     // list orders
                     case 1:
+                        listOrdersCommand(infoWin, footerWin, orderList, clientList);
+                        touchwin(infoWin);
+                        touchwin(footerWin);
                         break;
                     // view order
                     case 2:
