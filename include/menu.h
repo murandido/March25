@@ -2,6 +2,7 @@
 #define MARCH25_MENU_H
 #include <ncursesw/curses.h>
 #include "../include/client.h"
+#include  "../include/product.h"
 
 void clearInfoInput(WINDOW *infoWin, int startY);
 void printError(WINDOW *infoWin, int y, const char *msg);
@@ -20,7 +21,7 @@ void showClientMenu(
     ClientList *clientList
 );
 void showOrderMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX);
-void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX);
+void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX, ProductList *productList);
 void showMainMenu(
     WINDOW *menuWin,
     WINDOW *menuSuppWin,
@@ -32,7 +33,8 @@ void showMainMenu(
     int menuW,
     int menuSuppW,
     int topRowH,
-    ClientList *clientList
+    ClientList *clientList,
+    ProductList *productList
 );
 
 #endif //MARCH25_MENU_H

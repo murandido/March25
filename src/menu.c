@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "../include/menu.h"
 #include "../include/client.h"
+#include "../include/product.h"
 
 void clearInfoInput(WINDOW *infoWin, const int startY) {
     int maxW = getmaxx(infoWin);
@@ -516,6 +517,109 @@ void removeClientCommand(WINDOW *infoWin, ClientList *clientList) {
     wgetch(infoWin);
 }
 
+void insertProductCommand(WINDOW *infoWin, ProductList *productList) {
+    Product newProduct;
+    char buffer[200];
+    int row = 0;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID (Numerico) do produto: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+
+        // try to convert to int
+        const int id = atoi(buffer);
+
+        if (id <= 0) {
+            printError(infoWin, row + 1, "ID invalido. Digite um numero positivo.");
+            row--;
+            continue;
+        }
+
+        if (checkProductID(productList, id)) {
+            printError(infoWin, row + 1, "Este ID ja esta cadastrado.");
+            row--;
+            continue;
+        }
+
+        newProduct.id = id;
+        break;
+    }
+
+    // name
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Nome do Produto: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, newProduct.name, 99);
+
+        if (strlen(newProduct.name) == 0) {
+            printError(infoWin, row + 1, "O nome nao pode ser vazio.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // description
+    row += 2;
+    mvwprintw(infoWin, row++, 0, "Descricao: ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, newProduct.description, 99);
+
+    // price
+    row += 2;
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Preco (apenas numeros): ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+
+        // try to convert to int
+        const float priceFloat = atof(buffer);
+
+        if (priceFloat <= 0) {
+            printError(infoWin, row + 1, "Preco invalido. Digite um valor maior que 0.");
+            row--;
+            continue;
+        }
+
+        newProduct.price = (int) (priceFloat * 100);
+        break;
+    }
+
+    if (addProduct(productList, newProduct)) {
+        werase(infoWin);
+
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "PRODUTO ADICIONADO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro ao salvar produto (Memoria cheia?).");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -710,7 +814,15 @@ void showClientMenu(
 
 }
 
-void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WINDOW *footerWin, WINDOW *borderWindow, int borderColX) {
+void showProductMenu(
+    WINDOW *menuWin,
+    WINDOW *menuSuppWin,
+    WINDOW *infoWin,
+    WINDOW *footerWin,
+    WINDOW *borderWindow,
+    int borderColX,
+    ProductList *productList
+) {
     char options[6][50] = {
         "inserir_produto.exe",
         "listar_produtos.exe",
@@ -836,6 +948,7 @@ void showProductMenu(WINDOW *menuWin, WINDOW *menuSuppWin, WINDOW *infoWin, WIND
                 switch (highlight) {
                     // insert product
                     case 0:
+                        insertProductCommand(infoWin, productList);
                         break;
                     // list products
                     case 1:
@@ -1017,7 +1130,8 @@ void showMainMenu(
     const int menuW,
     const int menuSuppW,
     const int topRowH,
-    ClientList *clientList
+    ClientList *clientList,
+    ProductList *productList
 ) {
     char options[5][50] = {
         "CLIENTES/",
@@ -1147,7 +1261,7 @@ void showMainMenu(
                         break;
                     // products module
                     case 1:
-                        showProductMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX);
+                        showProductMenu(menuWin, menuSuppWin, infoWin, footerWin, borderWindow, borderColX, productList);
                         drawBorderWindow(borderWindow, mainBlockW, menuW, menuSuppW, topRowH);
                         touchwin(borderWindow);
                         wrefresh(borderWindow);
