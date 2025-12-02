@@ -620,6 +620,84 @@ void insertProductCommand(WINDOW *infoWin, ProductList *productList) {
     wgetch(infoWin);
 }
 
+void listProductsCommand(WINDOW *infoWin, WINDOW *footerWin, const ProductList *productList) {
+    int key;
+    int page = 0;
+    const int ITEMS_PER_PAGE = 10;
+    const int totalProducts = productList->count;
+
+    // if there's no product, quit
+    if (totalProducts == 0) {
+        werase(infoWin);
+        printError(infoWin, 5, "Nenhum produto cadastrado.");
+        return;
+    }
+
+    keypad(infoWin, TRUE);
+    curs_set(0);
+    noecho();
+
+    while (1) {
+        werase(infoWin);
+
+        // pagination calculation
+        const int totalPages = (totalProducts + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
+        const int startIndex = page * ITEMS_PER_PAGE;
+        int endIndex = startIndex + ITEMS_PER_PAGE;
+        if (endIndex > totalProducts) endIndex = totalProducts;
+
+        // table header
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 1, 1, "%-4s | %-15s | %-10s", "ID", "NOME", "PRECO");
+        mvwhline(infoWin, 2, 1, ACS_HLINE, getmaxx(infoWin) - 2);
+        wattroff(infoWin, A_BOLD);
+
+        int row = 3;
+        for (int i = startIndex; i < endIndex; i++) {
+            const Product p = productList->data[i];
+
+            char displayName[25];
+
+            strncpy(displayName, p.name, 14);
+            displayName[20] = '\0';
+
+            // format price (int cents to float)
+            const float priceFloat = p.price / 100.0f;
+
+            mvwprintw(infoWin, row, 1, "%-4d | %-15s | R$ %-7.2f",
+                      p.id, displayName, priceFloat);
+            row++;
+        }
+
+        // updates footer
+        werase(footerWin);
+        mvwprintw(footerWin, 0, 0, "Pagina %d/%d │ < > Navegar │ 'q' Sair", page + 1, totalPages);
+
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        key = wgetch(infoWin);
+
+        switch (key) {
+            case KEY_RIGHT:
+                if (page < totalPages - 1) page++;
+                break;
+            case KEY_LEFT:
+                if (page > 0) page--;
+                break;
+            case 'q':
+            case 'Q':
+                // restores the default footer before exiting
+                werase(footerWin);
+                mvwprintw(footerWin, 0, 0, "PWD: /PRODUTOS/ │ Modulo de PRODUTOS. ENTER para confirmar.");
+                wrefresh(footerWin);
+                return;
+            default:
+                break;
+        }
+    }
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -952,6 +1030,9 @@ void showProductMenu(
                         break;
                     // list products
                     case 1:
+                        listProductsCommand(infoWin, footerWin, productList);
+                        touchwin(infoWin);
+                        touchwin(footerWin);
                         break;
                     // edit product
                     case 2:

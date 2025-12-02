@@ -10,6 +10,8 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList);
 void listClientsCommand(WINDOW *infoWin, WINDOW *footerWin, const ClientList *clientList);
 void editClientCommand(WINDOW *infoWin, const ClientList *clientList);
 void removeClientCommand(WINDOW *infoWin, ClientList *clientList);
+void insertProductCommand(WINDOW *infoWin, ProductList *productList);
+void listProductsCommand(WINDOW *infoWin, WINDOW *footerWin, const ProductList *productList);
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH);
 void showClientMenu(
     WINDOW *menuWin,
