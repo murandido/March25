@@ -698,6 +698,122 @@ void listProductsCommand(WINDOW *infoWin, WINDOW *footerWin, const ProductList *
     }
 }
 
+void editProductCommand(WINDOW *infoWin, ProductList *productList) {
+    char buffer[200];
+    int row = 0;
+    int productIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID do produto a editar: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        for (int i = 0; i < productList->count; i++) {
+            if (productList->data[i].id == id) {
+                productIndex = i;
+                break;
+            }
+        }
+
+        if (productIndex == -1) {
+            printError(infoWin, row + 1, "Produto nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // pointer to the product that is going to be edit
+    Product *p = &productList->data[productIndex];
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+
+    mvwprintw(infoWin, row++, 0, "Produto: %s", p->name);
+    mvwprintw(infoWin, row++, 0, "Deseja editar? (S/N): ");
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Edicao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    // edit form
+    row++;
+    mvwprintw(infoWin, row++, 0, "Deixe em branco para manter o valor atual.");
+    row++;
+
+    // name
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Nome [%s]: ", p->name);
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 99);
+    if (strlen(buffer) > 0) {
+        strcpy(p->name, buffer);
+    }
+
+    // description
+    row += 2;
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Descricao [%s]: ", p->description);
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 99);
+    if (strlen(buffer) > 0) {
+        strcpy(p->description, buffer);
+    }
+
+    // price
+    row += 2;
+    clearInfoInput(infoWin, row);
+    float currentPrice = p->price / 100.0f;
+    mvwprintw(infoWin, row++, 0, "Preco [R$ %.2f]: ", currentPrice);
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 10);
+    if (strlen(buffer) > 0) {
+        float newPriceFloat = atof(buffer);
+        if (newPriceFloat > 0) {
+            p->price = (int)(newPriceFloat * 100);
+        }
+    }
+
+    werase(infoWin);
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, 5, 2, "PRODUTO ATUALIZADO COM SUCESSO!");
+    mvwprintw(infoWin, 7, 2, "Pressione ENTER para voltar...");
+    wattroff(infoWin, A_BOLD);
+    wrefresh(infoWin);
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -1036,6 +1152,7 @@ void showProductMenu(
                         break;
                     // edit product
                     case 2:
+                        editProductCommand(infoWin, productList);
                         break;
                     // remove product
                     case 3:
