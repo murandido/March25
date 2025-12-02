@@ -425,6 +425,97 @@ void editClientCommand(WINDOW *infoWin, const ClientList *clientList) {
     wgetch(infoWin);
 }
 
+void removeClientCommand(WINDOW *infoWin, ClientList *clientList) {
+    char buffer[200];
+    int row = 0;
+    int clientIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // search for id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Digite o ID do cliente a remover: ");
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search for the index
+        for (int i = 0; i < clientList->count; i++) {
+            if (clientList->data[i].id == id) {
+                clientIndex = i;
+                break;
+            }
+        }
+
+        if (clientIndex == -1) {
+            printError(infoWin, row + 2, "Cliente nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // get the data to confirm
+    Client c = clientList->data[clientIndex];
+    char displayName[50];
+    if (c.type == 0) strcpy(displayName, c.name);
+    else strcpy(displayName, c.legalName);
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Cliente: %s", displayName);
+    mvwprintw(infoWin, row++, 0, "Documento: %s", (c.type == 0) ? c.cpf : c.cnpj);
+
+    row++;
+    wattron(infoWin, COLOR_PAIR(1));
+    mvwprintw(infoWin, row++, 0, "TEM CERTEZA? Essa acao e irreversivel! (S/N): ");
+    wattroff(infoWin, COLOR_PAIR(1));
+
+    // row++;
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Remocao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    if (removeClient(clientList, c.id)) {
+        werase(infoWin);
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "CLIENTE REMOVIDO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro desconhecido ao remover");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -602,6 +693,7 @@ void showClientMenu(
                         break;
                     // remove
                     case 3:
+                        removeClientCommand(infoWin, clientList);
                         break;
                     // go back
                     case 5:
