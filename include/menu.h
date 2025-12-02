@@ -18,6 +18,7 @@ void editProductCommand(WINDOW *infoWin, ProductList *productList);
 void removeProductCommand(WINDOW *infoWin, ProductList *productList);
 void insertOrderCommand(WINDOW *infoWin, OrderList *orderList, ClientList *clientList, ProductList *productList);
 void listOrdersCommand(WINDOW *infoWin, WINDOW *footerWin, const OrderList *orderList, const ClientList *clientList);
+void viewOrderDetailsCommand(WINDOW *infoWin, const OrderList *orderList, const ClientList *clientList, const ProductList *productList);
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH);
 void showClientMenu(
     WINDOW *menuWin,

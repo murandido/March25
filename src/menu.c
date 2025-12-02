@@ -1215,6 +1215,130 @@ void listOrdersCommand(WINDOW *infoWin, WINDOW *footerWin, const OrderList *orde
     }
 }
 
+void viewOrderDetailsCommand(WINDOW *infoWin, const OrderList *orderList, const ClientList *clientList, const ProductList *productList) {
+    char buffer[200];
+    int row = 0;
+    int orderIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // search for order id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row++, 0, "Digite o ID do pedido: ");
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search in the list
+        for (int i = 0; i < orderList->count; i++) {
+            if (orderList->data[i].id == id) {
+                orderIndex = i;
+                break;
+            }
+        }
+
+        if (orderIndex == -1) {
+            printError(infoWin, row + 1, "Pedido nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // order found
+    const Order o = orderList->data[orderIndex];
+
+    // get client name
+    char clientName[50];
+    strcpy(clientName, "Desconhecido");
+    for(int i=0; i<clientList->count; i++) {
+        if(clientList->data[i].id == o.clientId) {
+            if(clientList->data[i].type == 0) strcpy(clientName, clientList->data[i].name);
+            else strcpy(clientName, clientList->data[i].legalName);
+            break;
+        }
+    }
+
+    // show header
+    noecho();
+    curs_set(0);
+    werase(infoWin);
+
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, 0, 0, "PEDIDO #%d", o.id);
+    wattroff(infoWin, A_BOLD);
+
+    mvwprintw(infoWin, 1, 0, "Cliente: %s (ID: %d)", clientName, o.clientId);
+    mvwprintw(infoWin, 2, 0, "Data: %s", o.date);
+
+    mvwhline(infoWin, 3, 0, ACS_HLINE, getmaxx(infoWin));
+
+    // show items (reading from CSV)
+    wattron(infoWin, A_UNDERLINE);
+    mvwprintw(infoWin, 4, 0, "%-2s | %-10s | %-3s | %-8s", "ID", "PRODUTO", "QTD", "SUBTOTAL");
+    wattroff(infoWin, A_UNDERLINE);
+
+    int itemRow = 5;
+    FILE *file = fopen("data/itens_pedido.csv", "r");
+    if (file) {
+        char line[256];
+        while (fgets(line, sizeof(line), file)) {
+            ItemOrder item;
+            // parse: orderId, productId, quantity, subtotal
+            if (sscanf(line, "%d,%d,%d,%d", &item.orderId, &item.productId, &item.quantity, &item.subtotal) == 4) {
+
+                // filter items for this order
+                if (item.orderId == o.id) {
+                    // get product name
+                    char prodName[25];
+                    strcpy(prodName, "---");
+                    for(int p=0; p<productList->count; p++) {
+                        if(productList->data[p].id == item.productId) {
+                            strncpy(prodName, productList->data[p].name, 9);
+                            break;
+                        }
+                    }
+                    prodName[9] = '\0';
+
+                    float subFloat = item.subtotal / 100.0f;
+
+                    // simple pagination check (stop printing if full)
+                    if (itemRow < getmaxy(infoWin) - 2) {
+                        mvwprintw(infoWin, itemRow, 0, "%-2d | %-10s | %-3d | R$ %-8.2f",
+                                  item.productId, prodName, item.quantity, subFloat);
+                        itemRow++;
+                    }
+                }
+            }
+        }
+        fclose(file);
+    } else {
+        mvwprintw(infoWin, 5, 0, "Nenhum item encontrado (arquivo vazio?).");
+    }
+
+    // order footer
+    mvwhline(infoWin, itemRow, 0, ACS_HLINE, getmaxx(infoWin));
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, itemRow + 1, 0, "TOTAL DO PEDIDO: R$ %.2f", o.total / 100.0f);
+    wattroff(infoWin, A_BOLD);
+
+    mvwprintw(infoWin, itemRow + 3, 0, "Pressione qualquer tecla para voltar...");
+    wrefresh(infoWin);
+    wgetch(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -1717,6 +1841,7 @@ void showOrderMenu(
                         break;
                     // view order
                     case 2:
+                        viewOrderDetailsCommand(infoWin, orderList, clientList, productList);
                         break;
                         // go back
                     case 4:
