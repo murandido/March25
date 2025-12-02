@@ -814,6 +814,95 @@ void editProductCommand(WINDOW *infoWin, ProductList *productList) {
     wgetch(infoWin);
 }
 
+void removeProductCommand(WINDOW *infoWin, ProductList *productList) {
+    char buffer[200];
+    int row = 0;
+    int productIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    werase(infoWin);
+
+    // search for id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Digite o ID do produto a remover: ");
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search for the index
+        for (int i = 0; i < productList->count; i++) {
+            if (productList->data[i].id == id) {
+                productIndex = i;
+                break;
+            }
+        }
+
+        if (productIndex == -1) {
+            printError(infoWin, row + 2, "Produto nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // get the data to confirm
+    Product p = productList->data[productIndex];
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row++, 0, "Produto: %s", p.name);
+    // format price
+    float priceFloat = p.price / 100.0f;
+    mvwprintw(infoWin, row++, 0, "Preco: R$ %.2f", priceFloat);
+
+    row++;
+    wattron(infoWin, COLOR_PAIR(1));
+    mvwprintw(infoWin, row++, 0, "TEM CERTEZA? Essa acao e irreversivel! (S/N): ");
+    wattroff(infoWin, COLOR_PAIR(1));
+
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Remocao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    if (removeProduct(productList, p.id)) {
+        werase(infoWin);
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 5, 2, "PRODUTO REMOVIDO COM SUCESSO!");
+        mvwprintw(infoWin, 7, 2, "Pressione qualquer tecla...");
+        wattroff(infoWin, A_BOLD);
+        wrefresh(infoWin);
+    } else {
+        printError(infoWin, 5, "Erro desconhecido ao remover da memoria.");
+    }
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -1156,6 +1245,7 @@ void showProductMenu(
                         break;
                     // remove product
                     case 3:
+                        removeProductCommand(infoWin, productList);
                         break;
                     // go back
                     case 5:
