@@ -188,10 +188,9 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
         printError(infoWin, 5, "Erro ao salvar cliente (Memoria cheia?).");
     }
 
-    // Desliga cursor e echo
     noecho();
     curs_set(0);
-    wgetch(infoWin); // Espera o usuário ler
+    wgetch(infoWin);
 }
 
 void listClientsCommand(WINDOW *infoWin, WINDOW *footerWin, const ClientList *clientList) {
@@ -275,6 +274,155 @@ void listClientsCommand(WINDOW *infoWin, WINDOW *footerWin, const ClientList *cl
                 break;
         }
     }
+}
+
+void editClientCommand(WINDOW *infoWin, const ClientList *clientList) {
+    char buffer[200];
+    int row = 0;
+    int clientIndex = -1;
+
+    curs_set(1);
+    echo();
+
+    // search for the id
+    while (1) {
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Digite o ID do cliente a editar: ");
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+
+        wgetnstr(infoWin, buffer, 10);
+        int id = atoi(buffer);
+
+        if (id <= 0) {
+            noecho();
+            curs_set(0);
+            return;
+        }
+
+        // search for the client index
+        for (int i = 0; i < clientList->count; i++) {
+            if (clientList->data[i].id == id) {
+                clientIndex = i;
+                break;
+            }
+        }
+
+        if (clientIndex == -1) {
+            printError(infoWin, row + 1, "Cliente nao encontrado.");
+            row--;
+            continue;
+        }
+        break;
+    }
+
+    // pointer to the client that needs to be edited
+    Client *c = &clientList->data[clientIndex];
+
+    row += 2;
+    clearInfoInput(infoWin, row);
+
+    // show who is
+    char displayName[50];
+    if (c->type == 0) strcpy(displayName, c->name);
+    else strcpy(displayName, c->legalName);
+
+    mvwprintw(infoWin, row++, 0, "Cliente: %s", displayName);
+    mvwprintw(infoWin, row++, 0, "Deseja editar? (S/N): ");
+    wrefresh(infoWin);
+
+    wgetnstr(infoWin, buffer, 5);
+    if (buffer[0] != 's' && buffer[0] != 'S') {
+        noecho();
+        curs_set(0);
+        werase(infoWin);
+        mvwprintw(infoWin, 5, 2, "Edicao cancelada.");
+        wrefresh(infoWin);
+        napms(1000);
+        return;
+    }
+
+    // edit form
+    row++;
+    mvwprintw(infoWin, row++, 0, "Deixe em branco para manter o valor atual.");
+    row++;
+
+    // address
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row, 0, "Endereco [%s]: ", c->address);
+    row++;
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 199);
+    if (strlen(buffer) > 0) {
+        strcpy(c->address, buffer);
+    }
+
+    row += 2;
+    // email
+    clearInfoInput(infoWin, row);
+    mvwprintw(infoWin, row, 0, "Email [%s]: ", c->email);
+    row++;
+    wmove(infoWin, row, 0);
+    wrefresh(infoWin);
+    wgetnstr(infoWin, buffer, 99);
+    if (strlen(buffer) > 0) {
+        strcpy(c->email, buffer);
+    }
+
+    // specific fields
+    if (c->type == 0) {
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Nome [%s]: ", c->name);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 99);
+        if (strlen(buffer) > 0) strcpy(c->name, buffer);
+
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Celular [%s]: ", c->phoneNumber);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 19);
+        if (strlen(buffer) > 0) strcpy(c->phoneNumber, buffer);
+
+    } else {
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Razao Social [%s]: ", c->legalName);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 99);
+        if (strlen(buffer) > 0) {
+            strcpy(c->legalName, buffer);
+        }
+
+        row += 2;
+        clearInfoInput(infoWin, row);
+        mvwprintw(infoWin, row, 0, "Contato [%s]: ", c->contactName);
+        row++;
+        wmove(infoWin, row, 0);
+        wrefresh(infoWin);
+        wgetnstr(infoWin, buffer, 99);
+        if (strlen(buffer) > 0) strcpy(c->contactName, buffer);
+    }
+
+    werase(infoWin);
+    wattron(infoWin, A_BOLD);
+    mvwprintw(infoWin, 5, 2, "CLIENTE ATUALIZADO COM SUCESSO!");
+    mvwprintw(infoWin, 7, 2, "Pressione ENTER para voltar...");
+    wattroff(infoWin, A_BOLD);
+    wrefresh(infoWin);
+
+    noecho();
+    curs_set(0);
+    wgetch(infoWin);
 }
 
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
@@ -450,6 +598,7 @@ void showClientMenu(
                         break;
                     // edit client
                     case 2:
+                        editClientCommand(infoWin, clientList);
                         break;
                     // remove
                     case 3:
