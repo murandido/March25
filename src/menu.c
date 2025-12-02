@@ -194,6 +194,89 @@ void insertClientCommand(WINDOW *infoWin, ClientList *clientList) {
     wgetch(infoWin); // Espera o usuário ler
 }
 
+void listClientsCommand(WINDOW *infoWin, WINDOW *footerWin, const ClientList *clientList) {
+    int key;
+    int page = 0;
+    const int ITEMS_PER_PAGE = 10;
+    const int totalClients = clientList->count;
+
+    // if there's no client, quit
+    if (totalClients == 0) {
+        werase(infoWin);
+        printError(infoWin, 5, "Nenhum cliente cadastrado.");
+        return;
+    }
+
+    keypad(infoWin, TRUE);
+    curs_set(0);
+    noecho();
+
+    while (1) {
+        werase(infoWin);
+
+        // pagination calculation
+        const int totalPages = (totalClients + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE;
+        const int startIndex = page * ITEMS_PER_PAGE;
+        int endIndex = startIndex + ITEMS_PER_PAGE;
+        if (endIndex > totalClients) endIndex = totalClients;
+
+        // table header
+        wattron(infoWin, A_BOLD);
+        mvwprintw(infoWin, 1, 1, "%-2s | %-20s | %-4s", "ID", "NOME/RAZAO", "TIPO");
+        mvwhline(infoWin, 2, 1, ACS_HLINE, getmaxx(infoWin) - 2);
+        wattroff(infoWin, A_BOLD);
+
+        int row = 3;
+        for (int i = startIndex; i < endIndex; i++) {
+            const Client c = clientList->data[i];
+
+            char displayName[30];
+            char type[5];
+
+            if (c.type == 0) {
+                strcpy(type, "PF");
+                strncpy(displayName, c.name, 19);
+            } else {
+                strcpy(type, "PJ");
+                strncpy(displayName, c.legalName, 19);
+            }
+            // guarantees a null terminator if truncation has occurred
+            displayName[24] = '\0';
+
+            mvwprintw(infoWin, row, 1, "%-2d | %-20s | %-4s",
+                      c.id, displayName, type);
+            row++;
+        }
+
+        // updates footer
+        werase(footerWin);
+        mvwprintw(footerWin, 0, 0, "Pagina %d/%d │ < > Navegar │ 'q' Sair", page + 1, totalPages);
+
+        wrefresh(infoWin);
+        wrefresh(footerWin);
+
+        key = wgetch(infoWin);
+
+        switch (key) {
+            case KEY_RIGHT:
+                if (page < totalPages - 1) page++;
+                break;
+            case KEY_LEFT:
+                if (page > 0) page--;
+                break;
+            case 'q':
+            case 'Q':
+                // restores the default footer before exiting
+                werase(footerWin);
+                mvwprintw(footerWin, 0, 0, "PWD: /CLIENTES/ │ Modulo de CLIENTES. ENTER para confirmar.");
+                wrefresh(footerWin);
+                return;
+            default:
+                break;
+        }
+    }
+}
+
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH) {
     // draw outline border
     box(borderWindow, 0, 0);
@@ -361,6 +444,9 @@ void showClientMenu(
                         break;
                     // list clients
                     case 1:
+                        listClientsCommand(infoWin, footerWin, clientList);
+                        touchwin(infoWin);
+                        touchwin(footerWin);
                         break;
                     // edit client
                     case 2:

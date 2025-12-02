@@ -5,6 +5,8 @@
 
 void clearInfoInput(WINDOW *infoWin, int startY);
 void printError(WINDOW *infoWin, int y, const char *msg);
+void insertClientCommand(WINDOW *infoWin, ClientList *clientList);
+void listClientsCommand(WINDOW *infoWin, WINDOW *footerWin, const ClientList *clientList);
 void drawBorderWindow(WINDOW *borderWindow, int mainBlockW, int menuW, int menuSuppW, int topRowH);
 void showClientMenu(
     WINDOW *menuWin,
