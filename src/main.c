@@ -3,6 +3,7 @@
 #include "../include/menu.h"
 #include  "../include/order.h"
 #include "../include/client.h"
+#include  "../include/product.h"
 #include "../include/utils.h"
 
 int main() {
@@ -33,6 +34,11 @@ int main() {
     ClientList clientList;
     initClientList(&clientList);
     loadClientsFromCSV(&clientList, "data/clients.csv");
+
+    // product array
+    ProductList productList;
+    initProductList(&productList);
+    loadProductsFromCSV(&productList, "data/products.csv");
 
     // order array
     OrderList orderList;
@@ -119,6 +125,8 @@ int main() {
     // save dynamic arrays
     saveClientsToCSV((&clientList), "data/clients.csv");
     freeClientList(&clientList);
+    saveProductsToCSV((&productList), "data/products.csv");
+    freeProductList(&productList);
     saveOrdersToCSV(&orderList, "data/orders.csv");
     freeOrderList(&orderList);
 
